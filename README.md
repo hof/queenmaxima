@@ -1,0 +1,4 @@
+queenmaxima
+===========
+
+QueenMaxima Chess Program
