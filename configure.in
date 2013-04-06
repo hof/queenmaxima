@@ -1,0 +1,29 @@
+AC_INIT
+
+AC_CONFIG_MACRO_DIR([m4])
+AM_CONFIG_HEADER(src/config.h src/queenmaxima/config.h)
+AM_INIT_AUTOMAKE(queenmaxima,0.3.3)
+
+AC_COPYRIGHT([Copyright (C) 1996-2011 Erik van het Hof and Hermen Reitsma])
+
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_RANLIB
+
+dnl *********************************************************************
+dnl ** GLIB *************************************************************
+dnl *********************************************************************
+
+AM_PATH_GLIB_2_0(2.0.3, glib=yes, glib=no)
+if test "$glib" = no; then
+        AC_MSG_ERROR("Cannot find glib")
+fi
+
+COMMON_LIBS="$GLIB_LIBS"
+
+AX_LIB_POSTGRESQL(8.0)
+
+COMMON_CFLAGS="$GLIB_CFLAGS" 
+CXXFLAGS="$POSTGRESQL_CFLAGS" 
+
+AC_OUTPUT(Makefile src/Makefile src/queenmaxima/Makefile)
