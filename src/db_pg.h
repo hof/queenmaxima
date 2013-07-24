@@ -21,7 +21,6 @@
 
 #include "config.h"
 
-#ifdef HAVE_POSTGRESQL
 #include <libpq-fe.h>
 #include "db_base.h"
 
@@ -60,7 +59,5 @@ class db_pg : public db_base
   void w17_database_unage(_int64 hashcode); 
   
 };
-
-#endif
 
 #endif 

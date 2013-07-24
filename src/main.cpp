@@ -29,11 +29,7 @@
 #include "main.h"
 #include "fast.h"
 #include "relay.h"
-
-#ifdef HAVE_POSTGRESQL
 #include "db_pg.h"
-#endif
-
 #include "parser.h" 
 #include "w0_search.h" 
 #include "hash.h"
@@ -233,7 +229,6 @@ void main_init()
     if (MainForm.properties[std::string("-db-save-game")]=="true")
     {
 
-#ifdef HAVE_POSTGRESQL
         MainForm.dbhandle = new db_pg();
 
         MainForm.dbhandle->connect(MainForm.properties[std::string("-db-host")].c_str(),
@@ -244,11 +239,6 @@ void main_init()
         set_dbhandle(MainForm.dbhandle);
        	std::cout << "Connected to PostgreSQL database\n";
 
-#else
-        MainForm.dbhandle = NULL;
-#endif
-
-               
     }
     
     /* MainForm init */
@@ -559,8 +549,8 @@ int main_test(int argc, char *argv[])
 
 void display_usage() 
 {
-    std::cout << "maxima chess engine. " << VERSION << " "__DATE__ << " "__TIME__"\n";
-    std::cout << "Copyright (C) 2000 Erik van het Hof and Hermen Reitsma. All rights reserved.\n" 
+    std::cout << "maxima chess engine. " << " "__DATE__ << " "__TIME__"\n";
+    std::cout << "Copyright (C) 1996-2013 Erik van het Hof and Hermen Reitsma. All rights reserved.\n" 
 	"\nusage: maxima [options] mode\n\n" 
 	" \n"
 	" modes: \n" 

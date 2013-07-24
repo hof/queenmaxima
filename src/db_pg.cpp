@@ -23,7 +23,6 @@
 #include "parser.h"
 #include "config.h"
 
-#ifdef HAVE_POSTGRESQL
 #include <libpq-fe.h>
 #include "db_pg.h"
 
@@ -815,4 +814,3 @@ void db_pg::w17_database_unage(_int64 hashcode)
 	}    
 } 
 
-#endif

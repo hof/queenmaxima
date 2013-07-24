@@ -10,3 +10,7 @@ No significant changes to the code have been made since 2000.
 The program continues to play as QueenMaxima(C) on chessclub.com and has played 
 more than 475,000 games there. 
 
+This project is GPL'd.  For complete details on our licensing please
+see the "LICENSE" file.
+
+
