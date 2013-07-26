@@ -148,7 +148,7 @@ long db_pg::save_player(const char* name, const char* titles, const char* server
 long db_pg::save_game(const int whitename, const int blackname, const int flags,
 				 const int wildnumber, const int whiterating, 
 				 const int blackrating, const int basetime, const int inc, 
-				 const int rating_type, const int rated) 
+				 const int rating_type, const int rated, string result_code)
 {
     
     // determine the current date 
@@ -156,11 +156,11 @@ long db_pg::save_game(const int whitename, const int blackname, const int flags,
     tm *t = localtime(&now); 
 
     std::ostringstream query; 
-    query << "INSERT INTO games (date,white,black,flags,wildnumber,whiterating,blackrating,basetime,increment,rating_type,rated) VALUES('"; 
+    query << "INSERT INTO games (date,white,black,flags,wildnumber,whiterating,blackrating,basetime,increment,rating_type,rated,result_code) VALUES('";
     query << 1900+t->tm_year << "-" <<  t->tm_mon+1 << "-" << t->tm_mday << " " << t->tm_hour << ":" << t->tm_min << ":" << t->tm_sec << "',";
     query << whitename << "," << blackname << "," << flags << "," << wildnumber << ",";
     query << whiterating << "," << blackrating << "," << basetime << "," << inc << ",";
-    query << rating_type << "," << rated <<  ")"; 
+    query << rating_type << "," << rated <<  ",'" << result_code << "')";
 
     PGresult *result = PQexec(m_connection,query.str().c_str());
 

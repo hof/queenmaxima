@@ -76,6 +76,6 @@ struct TMainForm {
 
 extern TMainForm MainForm; 
 
-void game_ended(int gameresult);
+void game_ended(int gameresult, std::string result_code);
 
 #endif 

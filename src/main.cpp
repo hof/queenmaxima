@@ -46,11 +46,11 @@
 
 TMainForm MainForm; 
 
-void game_ended(int gameresult)
+void game_ended(int gameresult, std::string result_code)
 {	
     if (MainForm.properties[std::string("-db-save-game")]=="false")
     {
-	return;
+    	return;
     }
 
     int maxima_firstply; 
@@ -60,15 +60,15 @@ void game_ended(int gameresult)
     /* check if maxima won or lost */ 
     int result_flag = 0; 
     if (gameresult == 3 && !max_white) { 
-	/* maxima lost */ 
-	result_flag = 0; 
+    	/* maxima lost */
+    	result_flag = 0;
     } else if (gameresult == 1 && max_white) { 
-	/* maxima lost */ 
-	result_flag = 0; 
+    	/* maxima lost */
+    	result_flag = 0;
     } else if (gameresult == 2) {
-	result_flag = 1;
+    	result_flag = 1;
     } else { 
-	result_flag = 2; 
+    	result_flag = 2;
     }
 
     int white_id = MainForm.dbhandle->save_player(MainForm.whitename.c_str(), MainForm.white_titles.c_str() , "icc");
@@ -85,11 +85,11 @@ void game_ended(int gameresult)
 
     int rating_type = 0; 
     if (MainForm.rating_type == "Blitz") { 
-	rating_type = 1; 
+    	rating_type = 1;
     } else if (MainForm.rating_type == "Standard") { 
-	rating_type = 2; 
+    	rating_type = 2;
     } else if (MainForm.rating_type == "Loser's") { 
-	rating_type = 3; 
+    	rating_type = 3;
     }
 
     int game_id = -1; 
@@ -98,16 +98,17 @@ void game_ended(int gameresult)
         game_id = MainForm.dbhandle->save_game(white_id,black_id, result_flag,
                                                MainForm.wildnumber, MainForm.whiterating,
                                                MainForm.blackrating, MainForm.basetime,
-                                               MainForm.increment,rating_type,MainForm.rated);
+                                               MainForm.increment,rating_type,MainForm.rated,
+                                               result_code);
     }
     
     if (game_id==-1) { 
-	return; 
+    	return;
     }
 
     // ok save the game 
     for (int i=1; i<engine_rootply ;i++) { 
-	MainForm.dbhandle->save_move(game_id,i,engine_records[i].move, engine_records[i].thinktime);
+    	MainForm.dbhandle->save_move(game_id,i,engine_records[i].move, engine_records[i].thinktime);
     } 
 
     // ok split the w0 and w17 learning 

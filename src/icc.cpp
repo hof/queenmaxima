@@ -168,17 +168,15 @@ void process_datagram()
 		gameresult = 0; 
 
 		if (engine_rootply > 5) { 
-		
-			max_has_white = (MainForm.myname == MainForm.whitename);
-			std::cout << "GAME_RESULT: " << MainForm.dgram_fields[3] << " " << MainForm.dgram_fields[4]
-			          << "maxwhite= " << max_has_white << std::endl;
+
+			std::cout << "GAME_RESULT: " << MainForm.dgram_fields[3] << " " << MainForm.dgram_fields[4] << std::endl;
 
 			if (MainForm.dgram_fields[4] == "1-0") { 
-				game_ended(3); /* white wins */ 
+				game_ended(3, MainForm.dgram_fields[3]); /* white wins */
 			} else if (MainForm.dgram_fields[4] == "0-1") {
-				game_ended(1); /* black wins */ 
+				game_ended(1, MainForm.dgram_fields[3]); /* black wins */
 			} else if (MainForm.dgram_fields[4] == "1/2-1/2") { 
-				game_ended(2); /* draw */ 
+				game_ended(2, MainForm.dgram_fields[3]); /* draw */
 			}
 			aborts = 0; 
 		} else { 

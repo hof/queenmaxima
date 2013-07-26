@@ -38,7 +38,7 @@ class db_pg : public db_base
   long save_game(const int whitename, const int blackname, const int flags, 
 		 const int wildnumber, const int whiterating, 
 		 const int blackrating, const int basetime, const int inc, 
-		 const int rating_type, const int rated);
+		 const int rating_type, const int rated, std::string result_code);
   long save_move(const int gamenumber, const int ply, const int move, const int thinktime);
   void update_stats(const char* tablename, const int player_id, const int rating, const int gameresult);
   void save_position(const char* tag, const int seq, const char* fen, const char* commands);

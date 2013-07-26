@@ -31,7 +31,7 @@
 		virtual long save_game(const int whitename, const int blackname, const int flags, 
 				const int wildnumber, const int whiterating, 
 			   const int blackrating, const int basetime, const int inc, 
-			   const int rating_type, const int rated) { return 0; };
+			   const int rating_type, const int rated, std::string result_code ) { return 0; };
 		virtual long save_move(const int gamenumber, const int ply, const int move, const int thinktime) { return 0; };
 		virtual void update_stats(const char* tablename, const int player_id, const int rating, const int gameresult) {};
 		virtual void save_position(const char* tag, const int seq, const char* fen, const char* commands) {};
