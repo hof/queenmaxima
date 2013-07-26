@@ -24,7 +24,7 @@
 #include "hash.h" 
 #include "tables.h"
 #include "egtb_lookup.h" 
-#include "db_base.h" 
+#include "db_pg.h"
 
 // define changed from stob to stob_init because 
 // there is a function stob in bitboard. 
@@ -248,7 +248,7 @@ void Master_Init(void)
     InitHash();     
     
     g.timer.start();
-    g.dbhandle = new db_base(); 
+    g.dbhandle = new db_pg();
 };
 
 

@@ -25,7 +25,6 @@
 
 #include "fast.h"
 #include "engine_impl.h"
-#include "db_base.h"  
 
 struct TMainForm { 
     
@@ -33,7 +32,7 @@ struct TMainForm {
     std::map<std::string, std::string> properties; 
 
     // database handle
-    db_base* dbhandle;
+    db_pg* dbhandle;
 
     // vars to detect if bugchess' search() has to be called
     int gameply;

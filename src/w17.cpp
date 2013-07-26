@@ -21,7 +21,6 @@
 
 #include "fast.h" 
 #include "w17.h" 
-#include "db_base.h" 
 #include "hash.h"
 #include "attack.h"
 #include "book.h" 

@@ -26,9 +26,9 @@
 #include <fcntl.h>
 #include <unistd.h>  
 #include "config.h" 
+#include "db_pg.h"
 #include "main.h"
 #include "fast.h"
-#include "db_pg.h"
 #include "parser.h" 
 #include "w0_search.h" 
 #include "hash.h"

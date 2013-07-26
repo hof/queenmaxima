@@ -76,12 +76,12 @@ bool s_ponderhit = false;
 pthread_cond_t *cond; // = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t *statemutex; // = PTHREAD_MUTEX_INITIALIZER; 
 
-void set_dbhandle(db_base* dbptr)
+void set_dbhandle(db_pg* dbptr)
 {
     if (g.dbhandle) {
-	delete g.dbhandle; 
+    	delete g.dbhandle;
     }
-    g.dbhandle = dbptr; 
+	g.dbhandle = dbptr;
 }
 
 void engine_update_stats()
@@ -414,7 +414,7 @@ void game_move_forward(int move)
 
 void signal_handler(int signal) 
 {	
-    if (s_threadstate==THREAD_THINKING) {
+    if (s_threadstate==THREAD_THINKING || s_ponderhit) {
 
 		int msecs = g.timer.elapsed ();
 		if (msecs >= g.stoptime) {

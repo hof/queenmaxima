@@ -29,27 +29,6 @@
 using namespace std;
 using namespace boost;
 
-long db_pg::db_get_max(const char *table, const char *field)
-{    
-    // get the max of a field, use this to work around AUTO_INCREMENT problems.
-    string query_buffer;
-    query_buffer = str(format("select max(%s) from %s") % field % table);
-    
-    /* execute query */
-    PGresult *result = PQexec(m_connection, query_buffer.c_str());
-    if (PQresultStatus(result) != PGRES_TUPLES_OK) { 
-        cerr << "db_get_max. error no result set\n";
-        PQclear(result);
-        close();
-        exit(1);				 
-    }
-
-    long res = atol(PQgetvalue(result,0,0));
-    PQclear(result); 
-    printf("db_get_max[%s:%s]=%ld\n",table,field,res);        
-    return res;    
-}
-
 bool db_pg::connect(const char* hostname, const char* username, const char* password, const char *database, const unsigned int port)
 {
     std::cerr << "db Postgres connecting to " << hostname << "\n"; 
@@ -112,18 +91,19 @@ long db_pg::save_player(const char* name, const char* titles, const char* server
 	    query.str(""); 
 	    query << "INSERT INTO players (name,titles,server,entered) VALUES ('" << name << "','" << titles; 
 	    query << "','" << server << "','" << (1900+t->tm_year) << "-" << t->tm_mon+1 << "-" << t->tm_mday << " ";
-	    query << t->tm_hour << ":" <<  t->tm_min << ":" << t->tm_sec << "')"; 
+	    query << t->tm_hour << ":" <<  t->tm_min << ":" << t->tm_sec << "') RETURNING id";
 	    result = PQexec(m_connection,query.str().c_str());
-	    if ((PQresultStatus(result) != PGRES_COMMAND_OK)) { 
+	    if ((PQresultStatus(result) != PGRES_TUPLES_OK)) {
 	    	cerr << "query3. save_player\n";
 	    	close();
 	    	exit(1);
 	    }
 	    
-		// todo: use returning
-	    player_id = db_get_max("players","id");
+		player_id = atoi(PQgetvalue(result,0,0));
 		PQclear(result);
-            
+
+		std::cout << "new player id=" << player_id << " name: " << name << std::endl;
+
 	} else {
 		player_id = atoi(PQgetvalue(result,0,0));
 		PQclear(result);
@@ -160,19 +140,21 @@ long db_pg::save_game(const int whitename, const int blackname, const int flags,
     query << 1900+t->tm_year << "-" <<  t->tm_mon+1 << "-" << t->tm_mday << " " << t->tm_hour << ":" << t->tm_min << ":" << t->tm_sec << "',";
     query << whitename << "," << blackname << "," << flags << "," << wildnumber << ",";
     query << whiterating << "," << blackrating << "," << basetime << "," << inc << ",";
-    query << rating_type << "," << rated <<  ",'" << result_code << "')";
+    query << rating_type << "," << rated <<  ",'" << result_code << "') RETURNING id ";
 
     PGresult *result = PQexec(m_connection,query.str().c_str());
 
-    if ((PQresultStatus(result) != PGRES_COMMAND_OK)) { 
+    if ((PQresultStatus(result) != PGRES_TUPLES_OK)) {
         cerr << "query1. save_game\n";
         close();
         exit(1); 	
     }
 
-    // todo: use returning 
+    long res = atoi(PQgetvalue(result,0,0));
     PQclear(result); 
-    long res = db_get_max("games","id"); 
+
+    std::cout << "saved game: " << res << std::endl;
+
     return res;        
 }
 

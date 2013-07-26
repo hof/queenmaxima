@@ -31,7 +31,7 @@
 
 #include <time.h>
 #include "defines.h" 
-#include "db_base.h"
+#include "db_pg.h"
 
 /* defines */ 
 
@@ -371,7 +371,7 @@ struct TFastNode
 	    int last_known_nps; 
 	    int tmax; 
 
-		db_base* dbhandle;
+		db_pg* dbhandle;
 
 		// callbacks
 		//void (*depth_completed_callback)();

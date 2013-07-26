@@ -22,7 +22,7 @@
 #include <cstring>
 #include "defines.h" 
 #include "fast.h"
-#include "db_base.h"
+#include "db_pg.h"
 
 struct Tengine_records { 
 	bool      maxima_thinking; 
@@ -39,13 +39,12 @@ extern int engine_rootply;
 
 // init 
 void init_engine(); 
-void set_database(db_base* db_handle); 
 void set_depth_callback(void (*depth_callback)(char *bestmove, char depth, long nodes, int time, int score));
 void set_think_callback(void (*think_callback)(char *bestmove, char depth, long nodes, int time, int score)); 
 void set_book_callback (void (*book_callback) (char *bestmove, char *booknamem, int score)); 
 void set_claimdraw_callback (void (*claimdraw_callback)(char *reason)); 
 void set_fen(const char* fen);
-void set_dbhandle(db_base* dbptr);
+void set_dbhandle(db_pg* dbptr);
 
 // searching 		
 void stop_thinking(); 

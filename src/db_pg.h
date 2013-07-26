@@ -19,18 +19,16 @@
 #ifndef dbpgH
 #define dbpgH
 
-#include "config.h"
-
 #include <libpq-fe.h>
-#include "db_base.h"
 
-class db_pg : public db_base
+#include "defines.h"
+
+class db_pg
 {
  private:
   PGconn* m_connection;
   bool   m_connected;   
  public:
-  long db_get_max(const char *table, const char *field);
   db_pg() : m_connection(NULL), m_connected(false) { };
   bool connect(const char* hostname, const char* username, const char* password, const char *database, const unsigned int port = 0);
   void close();
