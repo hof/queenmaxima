@@ -209,7 +209,7 @@ int select_qmove (int first, int & last)
 
 bool profcap_w (TFastNode * node, int move) 
 {
-	g_assert (_CAPTURE (move));
+	BOOST_ASSERT (_CAPTURE (move));
 	if (! SPECIAL (move)) {
 		if  (piece_val [CAPTURED (move)] < piece_val [PIECE (move)]) {
 			return true;
@@ -226,7 +226,7 @@ bool profcap_w (TFastNode * node, int move)
 
 bool profcap_b (TFastNode * node, int move) 
 {
-	g_assert (_CAPTURE (move));
+	BOOST_ASSERT (_CAPTURE (move));
 	if (! SPECIAL (move)) {
 		if  (piece_val [CAPTURED (move)] < piece_val [PIECE (move)]) {
 			return true;
@@ -269,9 +269,9 @@ bool lookup_books_wtm (TFastNode* node, int& score, int& avoid, int tmax, int mo
 		if (bookscore>0) {
 			score = 10000000+bookscore;
 			if (engine_rootply<2) { 
-			  g_print("+ "); 
+			  std::cout << "+ ";
 			  print_move(move); 
-			  g_print(" book-learn score=%d avoid=%d\n",score,avoid); 
+			  std::cout << boost::format(" book-learn score=%d avoid=%d\n") % score % avoid;
 			}
 			return true;
 		}
@@ -286,48 +286,47 @@ bool lookup_books_wtm (TFastNode* node, int& score, int& avoid, int tmax, int mo
 			score = wwin + draw - bwin;
 			if (score<0) {
 			  if (engine_rootply<2) { 
-			    g_print("- "); 
+			    std::cout << "- ";
 			    print_move(move); 
-			    g_print(" book-gm score=%d wwin=%d draw=%d bwin=%d\n",score,wwin,draw,bwin); 
+			    // std::cout << boost::format(" book-gm score=%d wwin=%d draw=%d bwin=%d\n") % score % wwin % draw % bwin;
 			  }
 			  return false;
 			}
 			if (engine_rootply<2) { 
-			  g_print("+ "); 
+			  std::cout << "+ ";
 			  print_move(move); 
-			  g_print(" book-gm norandomscore=%d wwin=%d draw=%d bwin=%d ",score,wwin,draw,bwin); 
+			  // std::cout << boost::format(" book-gm norandomscore=%d wwin=%d draw=%d bwin=%d ") % score % wwin % draw % bwin;
 			}
 			if (rand() > rand()) {
 				score <<= 1;
 				if (rand() > rand()) {
 					score <<= 1;
 				}
-                                std::cout << "random applied: " << score << "\n";  
 			}
 			if (engine_rootply<2) { 
-			  g_print("score=%d\n",score); 
+				// std::cout << boost::format("score=%d\n") % score;
 			}
 			return true;
 		}		
 	}
 	if (engine_rootply<2) { 
-	  g_print(". "); 
+	  std::cout << ". ";
 	  print_move(move); 
-	  g_print(" not found\n"); 
+	  std::cout << " not found\n";
 	}
 	return false;
 }
 
 bool lookup_books_btm (TFastNode* node, int& score, int& avoid, int tmax, int move)
 {
-        int     bookscore = 0,
-                bookavoid = 0,
-                npms = g.last_known_nps/1000, /* last known nodes per millisecond */
-                min_score,
-		wwin, 
-		draw,
-		bwin,
-                min_nodes;
+	int     bookscore = 0,
+			bookavoid = 0,
+			npms = g.last_known_nps/1000, /* last known nodes per millisecond */
+			min_score,
+			wwin,
+			draw,
+			bwin,
+			min_nodes;
 
 	min_nodes = tmax*npms;
 	min_score = tmax/5000;
@@ -335,22 +334,21 @@ bool lookup_books_btm (TFastNode* node, int& score, int& avoid, int tmax, int mo
 	score = 0;
 	avoid = 0;
 
-        // try the learning book;
-        if (database_lookup_learn (node->hashcode, bookscore, bookavoid, min_score, min_nodes, 0 /*wildnumber*/)) {
+	// try the learning book;
+	if (database_lookup_learn (node->hashcode, bookscore, bookavoid, min_score, min_nodes, 0 /*wildnumber*/)) {
 
- 		if (bookavoid==0 && bookscore<0) { //hack
-                        avoid = -bookscore/8;
-                } else {
-                        avoid = bookavoid;
-                }
-                if (bookscore>0) {
-                        score = 10000000+bookscore;
+		if (bookavoid==0 && bookscore<0) { //hack
+			avoid = -bookscore/8;
+		} else {
+			avoid = bookavoid;
+		}
+		if (bookscore>0) {
+			score = 10000000+bookscore;
 			// report some info here 
 			// 
-                        return true;
-                }
-
-        }
+			return true;
+		}
+	}
 
 	// temporarily clear avoid value 
 	avoid = 0; 
@@ -363,13 +361,12 @@ bool lookup_books_btm (TFastNode* node, int& score, int& avoid, int tmax, int mo
 			  // report some info here 
 			  return false;
 			}
-                        if (rand() > rand()) {
-                                score <<= 1;
-                                if (rand() > rand()) {
-                                        score <<= 1;
-                                }
-                           std::cout << "random applied: " << score << "\n";      
-                        }
+			if (rand() > rand()) {
+					score <<= 1;
+					if (rand() > rand()) {
+							score <<= 1;
+					}
+			}
 			// report some info here 
 			return true;
                 }
@@ -493,7 +490,7 @@ void load_xray (TFastNode *node,
 		piece;
 	while (t.squares_to_edge [target_sq] [sq]) {
 		sq += offset;
-		g_assert (sq >= 0 && sq <= 63);
+		BOOST_ASSERT (sq >= 0 && sq <= 63);
 		piece = node -> matrix [sq];
 		if (piece) {
 			if (piece < KING) {
@@ -699,7 +696,7 @@ bool load_attacker_w (TFastNode *node,
 				}
 			}
 		
-		       	/* attacked by white king? */   
+			/* attacked by white king? */
 			if (t.pieceattacks [KING] [tsq] [node->wkpos]) {
 				if (node -> wkpos != qmove_ssq) { 
 					state++; 
@@ -713,7 +710,7 @@ bool load_attacker_w (TFastNode *node,
 			state_index = 0; 
 			break; 
 		default: 
-			g_error("w0_load_attacker_w: state = %d\n", state); 
+			std::cerr << boost::format("w0_load_attacker_w: state = %d\n") % state;
 			break; 
 		}
 
@@ -927,8 +924,7 @@ int load_attacker_b (TFastNode *node,
 			state_index = 0;  
 			break; 
 		default:
-
-			g_error("w0_load_attacker_b: state = %d\n", state); 
+			std::cerr << boost::format("w0_load_attacker_b: state = %d\n") % state;
 			break; 	
 		}
 	}	
@@ -1168,7 +1164,7 @@ int genq_w (TFastNode* node, int index) {
 			
 	// generate captures and promotions (queen and knight) with white pawns
 
-	g_assert (index >= 0);
+	BOOST_ASSERT (index >= 0);
   
 	for (i = 0; i < node->wpawns; i++) {
 		ssq = node->wpawnlist [i];		
@@ -1281,13 +1277,10 @@ int genq_w (TFastNode* node, int index) {
 		tsq = t.nextdir [KING][ssq][tsq];
 	} while (ssq != tsq);  
 
-	g_assert (index <= ((MAXPLY + 2) << 7) + 128);
+	BOOST_ASSERT (index <= ((MAXPLY + 2) << 7) + 128);
 
 	return index;
 }
-
-
- 
 
 int genq_b (TFastNode* node, int index) 
 {
@@ -1298,7 +1291,7 @@ int genq_b (TFastNode* node, int index)
   
   // generate captures and promotions (queen and knight) with black pawns
 
-  g_assert (index >= 0);
+  BOOST_ASSERT (index >= 0);
 
   for (i = 0; i < node->bpawns; i++) {
 	  ssq = node->bpawnlist [i];
@@ -1418,7 +1411,7 @@ int genq_b (TFastNode* node, int index)
 	  tsq = t.nextdir [KING][ssq][tsq];
   } while (ssq != tsq);  
   
-  g_assert (index <= (((MAXPLY + 2) << 7)) + 128);
+  BOOST_ASSERT (index <= (((MAXPLY + 2) << 7)) + 128);
   
   return index;
 }

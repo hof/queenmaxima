@@ -23,6 +23,9 @@
 #include "attack.h"
 #include "w0.h"
 
+using namespace std;
+using namespace boost;
+
 Vars g; 
 Tables t; 
 
@@ -46,7 +49,7 @@ const bool _edge [] = {
 
 bool select_bookmove(TFastNode *node, int mc)
 { 
-	int value, best = - INFINITY, bestindex = 0; 
+	int value, best = - CHESS_INF, bestindex = 0;
 	for (int i=0; i < mc; i++) { 
 		if (g.rootmoves[i].bookmove) { 
 			value = g.rootmoves[i].bookvalue;
@@ -198,7 +201,7 @@ bool passed_bpawn (TFastNode * node, int sq)
 
 int get_move_from_db (TFastNode * node) 
 {
-	int best = - INFINITY,
+	int best = - CHESS_INF,
 		value,
 		move,
 		bestmove = 0, 
@@ -313,8 +316,8 @@ void print_cutoffs ()
 	int tot_cut_w = g.cutoffs_w [1],
 		tot_cut_b = g.cutoffs_b [1];
 	
-	g_assert (g.cutoffs_w [0] == 0);
-	g_assert (g.cutoffs_b [0] == 0);
+	BOOST_ASSERT (g.cutoffs_w [0] == 0);
+	BOOST_ASSERT (g.cutoffs_b [0] == 0);
 	
 	long double per; 
 	
@@ -323,19 +326,19 @@ void print_cutoffs ()
 		tot_cut_b += g.cutoffs_b [i];
 	}
 	per = (100.0 * g.cutoffs_w [1]) / (tot_cut_w + 1.0);
-	g_print ("cutoffs_w (%d): %d (%d%%)", tot_cut_w, g.cutoffs_w [1], (int) per);	
+	cout << format("cutoffs_w (%d): %d (%d%%)") % tot_cut_w % g.cutoffs_w [1] % (int)per;
 	for (i = 2; i <= 7; i ++) {
 		per = (100.0 * g.cutoffs_w [i]) / (tot_cut_w + 1.0);
-		g_print (", %d (%d%%)", g.cutoffs_w [i], (int) per);
+		cout << format(", %d (%d%%)") % g.cutoffs_w [i] % (int) per;
 	}
-	g_print ("\n");	
+	cout << "\n";
 	per = (100.0 * g.cutoffs_b [1]) / (tot_cut_b + 1.0);
-	g_print ("cutoffs_b (%d): %d (%d%%)", tot_cut_b, g.cutoffs_b [1], (int) per);	
+	cout << format("cutoffs_b (%d): %d (%d%%)") % tot_cut_b % g.cutoffs_b [1] % (int) per;
 	for (i = 2; i <= 7; i ++) {
 		per = (100.0 * g.cutoffs_b [i]) / (tot_cut_b + 1.0);
-		g_print (", %d (%d%%)", g.cutoffs_b [i], (int) per);
+		cout << format(", %d (%d%%)") % g.cutoffs_b [i] % (int) per;
 	}
-	g_print ("\n");		
+	cout << "\n";
 }
 
 int count_legals_w (TFastNode * node, int first, int last) 
@@ -394,7 +397,7 @@ void update_pv (TFastNode *node,int move, int ply)
 	while (g.pv [ply+1][i]) {
 		g.pv [ply][i] = g.pv [ply+1][i++];
 				
-		g_assert( i <= MAXPLY ); 
+		BOOST_ASSERT( i <= MAXPLY );
 
 	}
 	g.pv[ply][i]=0;
@@ -910,7 +913,7 @@ void print_path (int ply)
 {     
 	for (int i = 0; i < ply; i++) {
 		if (i>0) {
-			g_print (", ");
+			cout <<  ", ";
 		}
 		_print_LAN (g.path [i]); 	          
 	}
@@ -922,52 +925,46 @@ void add_time () {
 	} 	
 }
 
-
-
-
-
-
-
 #ifdef PRINT_SEARCH 
 
 void print_search_entry (TFastNode *node, int type, int ply, int depth)
 {
 	for (int i=1; i<=ply; i++) { 
-		g_print("  "); 
+		cout << "  ";
 	}
 
-	g_print("-->%10x ",(int)node->hashcode); 
+	cout << format("-->%10x ") % (int)node->hashcode;
 
 	switch (type) {
 	case _PS_PVS_W:
-		g_print ("PVS_W "); 
+		cout << "PVS_W ";
 		break;
 	case _PS_PVS_B:
-		g_print ("PVS_B ");
+		cout << "PVS_B ";
 		break;
 	case _PS_PVS_E_W:
-		g_print ("EVA_W ");
+		cout << "EVA_W ";
 		break;
 	case _PS_PVS_E_B:
-		g_print ("EVA_B ");
+		cout << "EVA_B ";
 		break;
 	case _PS_Q_W:
-		g_print ("QUI_W ");
+		cout << "QUI_W ";
 		break;
 	case _PS_Q_B:
-		g_print ("QUI_B ");
+		cout << "QUI_B ";
 		break;
 	case _PS_Q_E_W:
-		g_print ("QEV_W ");
+		cout << "QEV_W ";
 		break;
 	case _PS_Q_E_B:
-		g_print ("QEV_B ");
+		cout << "QEV_B ";
 		break;
 	}
 
-	g_print("ply=%d depth=%d entry_move=",ply,depth);
+	cout << format("ply=%d depth=%d entry_move=") % ply % depth;
 	print_move(g.path[ply-1]);
-	g_print("\n"); 
+	cout << "\n";
 
 }
 
@@ -977,78 +974,78 @@ void print_search (TFastNode* node, int alpha, int beta, int move, int ply, int 
 		g_print("  "); 
 	}
 
-	g_print("<--%10x ",(int)node->hashcode); 
+	cout << format("<--%10x ")  % (int)node->hashcode;
 
 	switch (proc) {
 	case _PS_PVS_W:
-		g_print ("PVS_W "); 
+		cout << "PVS_W ";
 		break;
 	case _PS_PVS_B:
-		g_print ("PVS_B ");
+		cout << "PVS_B ";
 		break;
 	case _PS_PVS_E_W:
-		g_print ("EVA_W ");
+		cout << "EVA_W ";
 		break;
 	case _PS_PVS_E_B:
-		g_print ("EVA_B ");
+		cout << "EVA_B ";
 		break;
 	case _PS_Q_W:
-		g_print ("QUI_W ");
+		cout << "QUI_W ";
 		break;
 	case _PS_Q_B:
-		g_print ("QUI_B ");
+		cout << "QUI_B ";
 		break;
 	case _PS_Q_E_W:
-		g_print ("QEV_W ");
+		cout << "QEV_W ";
 		break;
 	case _PS_Q_E_B:
-		g_print ("QEV_B ");
+		cout << "QEV_B ";
 		break;
 	}
 	// print_score (_result_value);
-	g_print (" i=%d, n=%d, p=%d, v=%d, a=%d, b=%d, path: ", g.iteration, g.fastnodes, ply, score, alpha, beta);
+	cout << format(" i=%d, n=%d, p=%d, v=%d, a=%d, b=%d, path: " % g.iteration %
+			g.fastnodes % ply % score % alpha % beta);
 	print_path (ply);
 	if (move) {
-		g_print (", ");
+		cout << ", ";
 		print_move (move);
 	}
-	g_print(" "); 
-	if ( (int)node->hashcode == 0x2abac3b) { 
-		g_print("gotcha!\n"); 
+	cout << " ";
+	if ((int)node->hashcode == 0x2abac3b) {
+		cout << "gotcha!\n";
 	}
 	switch (type) {
 	case _PS_HASH:
-		g_print ("hash\n");
+		cout << "hash\n";
 		return;
 	case _PS_CUT:
-		g_print ("cut\n");
+		cout << "cut\n";
 		return;
 	case _PS_TRIVIAL:
-		g_print ("trivial\n");
+		cout << "trivial\n";
 		return;
 	case _PS_NORMAL:
-		g_print ("normal\n");
+		cout << "normal\n";
 		return;
 	case _PS_TIME:
-		g_print ("time\n");
+		cout << "time\n";
 		return;
 	case _PS_MAXPLY:
-		g_print ("maxply\n");
+		cout << "maxply\n";
 		return; 
 	case _PS_NULLCUT:
-		g_print ("nullcut\n");	
+		cout << "nullcut\n";
 		return;	
 	case _PS_EVAL:
-		g_print ("eval\n"); 
+		cout << "eval\n";
 		return; 
 	case _PS_UNKNOWN: 
-		g_print ("score_unknown\n"); 
+		cout << "score_unknown\n";
 		break; 
 	default:
-		g_print ("ERROR\n");
+		cout << "ERROR\n";
 		return;
 	}
-	 		
 }
 
 #endif
@@ -1073,9 +1070,9 @@ void root_new_best (TFastNode *node, int index, int value) {
 			
 // #ifdef PRINT_SEARCH
         if (g.iteration > 4) {            
-            g_print("  --> %d d=%d (%d) ",value, g.iteration, g.fastnodes);
+            cout << format("  --> %d d=%d (%d) ") % value % g.iteration % g.fastnodes;
             print_pv();
-            g_print("                                           \r");
+            cout << "                                           \r";
         }
 // #endif
 
@@ -1132,34 +1129,34 @@ void display_time (_int64 time)
 	time -= secs * MSECS_PER_SEC;
 
 	if (!secs && !mins && !hours) { 
-		g_print("%dms",(int)time); 
+		cout << format("%dms") % (int)time;
 		return;
 	}
 
 	if (hours) {
-		g_print ("%d:", hours);
+		cout << format("%d:") %  hours;
 	} else {
 		//g_print ("0:");
 	}
 	if (mins) {
 		if (hours && mins < 10) {
-			g_print ("0");
+			cout << "0";
 		}
-		g_print ("%d:", mins);
+		cout << format("%d:") %  mins;
 	} else {
 		if (hours) {
-			g_print ("00:");
+			cout << "00:";
 		} else {
-			g_print ("0:");
+			cout << "0:";
 		}
 	}
 	if (secs) {
 		if (secs < 10) {
-			g_print ("0");
+			cout << "0";
 		}
-		g_print ("%d", secs);
+		cout << format("%d") % secs;
 	} else {
-		g_print ("00");
+		cout << "00";
 	}	
 }
 
@@ -1171,7 +1168,7 @@ void _fast_init_iterate (TFastNode * node)
 	node->maximum_mobility_score >>= 1;
 	g.iteration = 1;
 	g.maxply = 0;
-	g.result_value = - INFINITY;
+	g.result_value = - CHESS_INF;
 	g.fastnodes = 0;	
 	g.repindex = node -> fifty;
 	g.rootscore = 0;
@@ -1489,7 +1486,7 @@ int _fast_gencapsw (TFastNode* node, int index)
 		tsq = t.nextdir [KING][ssq][tsq];
 	} while (ssq != tsq);  
 
-	g_assert (index <= ((MAXPLY + 2) << 7) + 128);
+	BOOST_ASSERT (index <= ((MAXPLY + 2) << 7) + 128);
 
 	return index;
 }

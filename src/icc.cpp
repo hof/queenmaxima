@@ -25,7 +25,15 @@
 #include "w17.h" 
 #include "engine_impl.h" 
 #include "tm_icc.h" 
-#include "relay.h" 
+
+const std::string currentDateTime() {
+    time_t     now = time(0);
+    struct tm  tstruct;
+    char       buf[80];
+    tstruct = *localtime(&now);
+    strftime(buf, sizeof(buf), "%Y-%m-%d %X", &tstruct);
+    return buf;
+}
 
 void connect_to_ics(const char *host, const int port) 
 { 
@@ -34,9 +42,9 @@ void connect_to_ics(const char *host, const int port)
 
     hp = gethostbyname(host); 
     if (hp==NULL) {  
-	std::cerr << "maxima failed to resolve hostname\n"; 
-	exit(1); 
-	return; 
+    	std::cerr << "maxima failed to resolve hostname\n";
+    	exit(1);
+    	return;
     }
  
     memset( (char *)&server, 0, sizeof (server));
@@ -46,14 +54,14 @@ void connect_to_ics(const char *host, const int port)
 
     MainForm.socket_connection = socket(hp->h_addrtype,SOCK_STREAM,0);  
     if (MainForm.socket_connection<0) { 
-	std::cerr << "could not create socket\n"; 
+    	std::cerr << "could not create socket\n";
     }
 
     int ecode=0; 
     ecode = connect(MainForm.socket_connection, (sockaddr *)&server, sizeof (server)); 
     if (ecode<0) {
-	std::cerr << "connect error: " << ecode << "\n";
-	return; 
+    	std::cerr << "connect error: " << ecode << "\n";
+    	return;
     }
 
     MainForm.lost_connection = false; 
@@ -79,12 +87,12 @@ void process_datagram()
 		std::cout << "icc logged in as " << MainForm.dgram_fields[1] << "\n"; 
 		MainForm.myname = MainForm.dgram_fields[1];
                 
-                // autoseek 
+		// autoseek
 		if (MainForm.autoseek) {
 		    send(MainForm.socket_connection, "seek1\nseek2\nseek3\n", 18, 0);
-		    std::cout << "icc autoseeking\n"; 
-		    // send(MainForm.socket_connection, "seek 3 0 u\n", 11, 0);
-                }
+		    std::cout << currentDateTime() << " icc autoseeking\n";
+		    send(MainForm.socket_connection, "seek 3 0 u\n", 11, 0);
+		}
                 
 		break; 
 	case DG_OPEN:
@@ -122,13 +130,13 @@ void process_datagram()
 		// autorematch counter 
 		if (MainForm.whiterating>1800 && MainForm.blackrating>1800 && MainForm.wildnumber == 0) {
 			unrated = 0;
-			g_print ("unrated set to 0\n");
+			std::cout << "unrated set to 0\n";
 		}
 	 	
 		max_has_white = (MainForm.myname == MainForm.whitename);
 		// calculate drawscore 
-                if (max_has_white) {
-                        g.drawscore_wtm = (MainForm.blackrating - MainForm.whiterating) * 3;
+		if (max_has_white) {
+			g.drawscore_wtm = (MainForm.blackrating - MainForm.whiterating) * 3;
 			if (g.drawscore_wtm > 1000) { 
 			    g.drawscore_wtm = 1000; 
 			}
@@ -136,8 +144,8 @@ void process_datagram()
 			    g.drawscore_wtm = -1000; 
 			}
 			g.drawscore_btm = -g.drawscore_wtm;
-                } else {
-                        g.drawscore_btm = (MainForm.whiterating - MainForm.blackrating) * 3;
+		} else {
+			g.drawscore_btm = (MainForm.whiterating - MainForm.blackrating) * 3;
 			if (g.drawscore_btm > 1000) {
 			    g.drawscore_btm = 1000; 
 			}
@@ -145,20 +153,15 @@ void process_datagram()
 			    g.drawscore_btm = -1000; 
 			}
 			g.drawscore_wtm = -g.drawscore_btm;
-                }
+		}
 		std::cout << "icc starting game " << MainForm.whitename << " (" << MainForm.whiterating << ") vs. "; 
 		std::cout << MainForm.blackname << " (" << MainForm.blackrating << ")\n"; 
 		// std::cout << "icc drawscore_wtm=" << g.drawscore_wtm << " drawscore_btm=" << g.drawscore_btm << "\n";
-                
-                /* relay */                
-                relay_game(MainForm.whitename, MainForm.blackname, MainForm.white_titles, MainForm.black_titles, 
-                        MainForm.whiterating, MainForm.blackrating, MainForm.basetime, 
-                        MainForm.increment, MainForm.wildnumber);                  
-                
+
 		break; 
 	case DG_MY_GAME_RESULT:
-                /* Form: (gamenumber become-examined game_result_code score_string2 
-		          description-string) */ 		
+		/* Form: (gamenumber become-examined game_result_code score_string2
+  		   description-string) */
 	    
 		stop_thinking(); 
 
@@ -166,6 +169,10 @@ void process_datagram()
 
 		if (engine_rootply > 5) { 
 		
+			max_has_white = (MainForm.myname == MainForm.whitename);
+			std::cout << "GAME_RESULT: " << MainForm.dgram_fields[3] << " " << MainForm.dgram_fields[4]
+			          << "maxwhite= " << max_has_white << std::endl;
+
 			if (MainForm.dgram_fields[4] == "1-0") { 
 				game_ended(3); /* white wins */ 
 			} else if (MainForm.dgram_fields[4] == "0-1") {
@@ -184,9 +191,6 @@ void process_datagram()
 				exit(0); 
 			}
 		}
-
-                /* relay end of game */
-                relay_result(MainForm.dgram_fields[4], MainForm.dgram_fields[5]); 
                 
 		// check if we have to exit		
 		if (graceful_shutdown) { 
@@ -197,8 +201,8 @@ void process_datagram()
 		// autoseek 
 		if (MainForm.autoseek) {
 		    send(MainForm.socket_connection, "seek1\nseek2\nseek3\n", 18, 0);
-		    std::cout << "icc autoseeking\n"; 
-		    // send(MainForm.socket_connection, "seek 3 0 u\n", 11, 0);
+		    std::cout << currentDateTime() << " icc autoseeking\n";
+		    send(MainForm.socket_connection, "seek 3 0 u\n", 11, 0);
 		}	
 		break; 
 	case DG_SEND_MOVES:
@@ -212,49 +216,47 @@ void process_datagram()
 		// g_print("-*-");
 
 		if (nmoves_to_follow) { 
-			g_print("DG_SEND_MOVE: adjourned. move="); 
+			std::cout << "DG_SEND_MOVE: adjourned. move=";
 			print_move(move); 			
 			nmoves_to_follow--; 
-			g_print(" moves_left=%d\n",nmoves_to_follow); 
+			std::cout << boost::format("moves_left=%d\n") % nmoves_to_follow;
 			game_move_forward(move);
 
 			if (nmoves_to_follow) { 			
 				MainForm.gameply++; /* anders dubbeltelling hieronder */ 
-                                MainForm.relayply++; 
+				MainForm.relayply++;
 			}
 			move = 0; 
 		}
 
 		if (!nmoves_to_follow) { 
 
-                        MainForm.gameply++;                                                     
+			MainForm.gameply++;
 			if (MainForm.playoneven && MainForm.gameply %2 == 0) { 	
 
-                            MainForm.relayply++; 
-                            relay_move(move, MainForm.relayply); 
+				MainForm.relayply++;
                             
-                            game_search (MainForm.gameply, move, MainForm.whitetime, MainForm.blacktime, MainForm.increment);
+				game_search (MainForm.gameply, move, MainForm.whitetime, MainForm.blacktime, MainForm.increment);
                                                                                    
 			} else if ((!MainForm.playoneven) && (MainForm.gameply % 2 != 0)) {    
 			    
-                            MainForm.relayply++; 
-                            relay_move(move, MainForm.relayply);                             
+				MainForm.relayply++;
                             
-                            game_search (MainForm.gameply, move, MainForm.whitetime, MainForm.blacktime, MainForm.increment);						
+				game_search (MainForm.gameply, move, MainForm.whitetime, MainForm.blacktime, MainForm.increment);
                                                         
 			}
 		}        
-                break; 
+		break;
 	case DG_MOVE_LIST: 
 		/* Format: (gamenumber initial-position 
 		            {white-move1-info}{black-move1-info}
                             {white-move2-info} ...) */	
-		g_print("DG_MOVE_LIST"); 
+		std::cout << "DG_MOVE_LIST";
 		break; 
 	case DG_FEN:
 		/* Format: (gamenumber {FEN-string}) */ 
 		/* beginpositie setten in MainForm.fastposition */ 
-		g_print("DG_FEN\n"); 
+		std::cout << "DG_FEN\n";
 
 		// lame check to see if it is a continued game
 		if (std::string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") == MainForm.dgram_fields[2]) { 
@@ -264,13 +266,13 @@ void process_datagram()
 		}
 		set_fen(MainForm.dgram_fields[2].c_str()); 
 		MainForm.gameply = 0; 
-                MainForm.relayply = 0; 
+		MainForm.relayply = 0;
 		MainForm.playoneven = false; 
 
 		max_has_white = (MainForm.myname == MainForm.whitename);
 		// calculate drawscore 
-                if (max_has_white) {
-                        g.drawscore_wtm = (MainForm.blackrating - MainForm.whiterating) * 3;
+		if (max_has_white) {
+			g.drawscore_wtm = (MainForm.blackrating - MainForm.whiterating) * 3;
 			if (g.drawscore_wtm > 1000) { 
 			    g.drawscore_wtm = 1000; 
 			}
@@ -278,8 +280,8 @@ void process_datagram()
 			    g.drawscore_wtm = -1000; 
 			}
 			g.drawscore_btm = -g.drawscore_wtm;
-                } else {
-                        g.drawscore_btm = (MainForm.whiterating - MainForm.blackrating) * 3;
+		} else {
+			g.drawscore_btm = (MainForm.whiterating - MainForm.blackrating) * 3;
 			if (g.drawscore_btm > 1000) {
 			    g.drawscore_btm = 1000; 
 			}
@@ -287,13 +289,13 @@ void process_datagram()
 			    g.drawscore_btm = -1000; 
 			}
 			g.drawscore_wtm = -g.drawscore_btm;
-                }
+		}
 
 		// check if we have to start thinking  
-                if (engine_rootnode.flags & _WTM && max_has_white) { 
+		if (engine_rootnode.flags & _WTM && max_has_white) {
 		    MainForm.playoneven = true;
 		    game_search(0, 0, MainForm.whitetime, MainForm.blacktime, MainForm.increment);
-                } else if (!max_has_white) { 
+		} else if (!max_has_white) {
 		    MainForm.playoneven = true; 
 		    game_search(0, 0, MainForm.whitetime, MainForm.blacktime, MainForm.increment);
 		}
@@ -301,16 +303,14 @@ void process_datagram()
 	case DG_MSEC: 
 	    // (gamenumber color msec running)
 
-            if (MainForm.dgram_fields[2] == "W") { 
+		if (MainForm.dgram_fields[2] == "W") {
 		// update time of white 
 		MainForm.whitetime = atoi(MainForm.dgram_fields[3].c_str()); 		       
 	    } else { 
 		// update time of black
 		MainForm.blacktime = atoi(MainForm.dgram_fields[3].c_str()); 		       
 	    }		
-            
-            relay_time(MainForm.dgram_fields[2], MainForm.dgram_fields[3]); 
-            
+
 	    break; 
 	case DG_MATCH:
 	    /* 
@@ -324,17 +324,17 @@ void process_datagram()
 	    challenger_rating = atoi (MainForm.dgram_fields[2].c_str());
 	    
 	    if (challenger_rating<1800) {
-		unrated++;
+	    	unrated++;
 	    } else if (atoi(MainForm.dgram_fields[7].c_str()) != 0) { //wildnumber
-		unrated++;
+	    	unrated++;
 	    } else {
-		unrated = 0;
+	    	unrated = 0;
 	    } 
 		
 	    if (MainForm.autoaccept && unrated<3) { 
-		send(MainForm.socket_connection,"accept ",7, 0); 
-		send(MainForm.socket_connection,MainForm.dgram_fields[1].c_str(),MainForm.dgram_fields[1].length(), 0); 
-		send(MainForm.socket_connection,"\n",1, 0); 
+	    	send(MainForm.socket_connection,"accept ",7, 0);
+	    	send(MainForm.socket_connection,MainForm.dgram_fields[1].c_str(),MainForm.dgram_fields[1].length(), 0);
+	    	send(MainForm.socket_connection,"\n",1, 0);
 	    }
 	    break; 
 	case DG_KIBITZ: 
@@ -349,23 +349,23 @@ void process_datagram()
 		
 	    // check if this a remote command 
 	    if (MainForm.dgram_fields[1] == "hof") { 
-		remote_cmd = true; 
+	    	remote_cmd = true;
 	    }
 	    if (MainForm.dgram_fields[1] == "Hajewiet") { 
-		remote_cmd = true; 
+	    	remote_cmd = true;
 	    }
 	    if (MainForm.dgram_fields[1] == "fridus") { 
-		remote_cmd = true; 
+	    	remote_cmd = true;
 	    }
 	    
 	    // g_print("%s tells you: %s\n", MainForm.dgram_fields[1]->str, MainForm.dgram_fields[3]->str);
 	    
 	    if (remote_cmd) { 
-		if (MainForm.dgram_fields[3] == "graceful") { 
-		    graceful_shutdown = true; 
-		}
-		send(MainForm.socket_connection, MainForm.dgram_fields[3].c_str(), MainForm.dgram_fields[3].length(), 0); 
-		send(MainForm.socket_connection, "\r\n",2, 0); 
+	    	if (MainForm.dgram_fields[3] == "graceful") {
+	    		graceful_shutdown = true;
+	    	}
+	    	send(MainForm.socket_connection, MainForm.dgram_fields[3].c_str(), MainForm.dgram_fields[3].length(), 0);
+	    	send(MainForm.socket_connection, "\r\n",2, 0);
 	    }		
 	    break; 
 	case DG_POSITION_BEGIN:
@@ -374,7 +374,7 @@ void process_datagram()
 		// g_print("DG_POSITION_BEGIN: FEN=%s nmoves=%s\n",MainForm.dgram_fields[2]->str,MainForm.dgram_fields[3]->str); 
 		nmoves_to_follow = atoi(MainForm.dgram_fields[3].c_str()); 
 		MainForm.gameply = 0; 
-                MainForm.relayply = 0; 
+		MainForm.relayply = 0;
 		MainForm.playoneven = false; 
 		if (!nmoves_to_follow) { 					 
 		    // check if we need to start searching 
@@ -414,11 +414,10 @@ void icc_connection_cb()
 { 
     char buffer[8092];  
     int bytesread = recv(MainForm.socket_connection, buffer,8092, 0); 
-    if (!bytesread) 
-    {
-	// end of file from socket 
-	MainForm.lost_connection = true; 
-	return;
+    if (!bytesread) {
+    	// end of file from socket
+    	MainForm.lost_connection = true;
+    	return;
     }
     for (int i=0; i<bytesread;i++) { 
 	switch(MainForm.ICCstate) {
@@ -442,12 +441,12 @@ void icc_connection_cb()
 //
 		    std::string login_name = MainForm.properties[std::string("-icc-user")];
 		    if (login_name == "guest") { 
-			// do a guest login  
-			send(MainForm.socket_connection, "g\n\nset prompt 0\nset style 13\n", 29, 0); 
-			MainForm.ICCstate = 1; /* alleen bij een guest login */ 				 
+		    	// do a guest login
+		    	send(MainForm.socket_connection, "g\n\nset prompt 0\nset style 13\n", 29, 0);
+		    	MainForm.ICCstate = 1; /* alleen bij een guest login */
 		    } else {
-			send(MainForm.socket_connection, login_name.c_str(), login_name.length(), 0);
-			send(MainForm.socket_connection, "\n", 1, 0); 
+		    	send(MainForm.socket_connection, login_name.c_str(), login_name.length(), 0);
+		    	send(MainForm.socket_connection, "\n", 1, 0);
 		    }
 		}
 				
@@ -518,7 +517,7 @@ void icc_connection_cb()
 	    switch(buffer[i]) { 
 	    case ' ' :          
 		// end of field 
-	       	MainForm.dgram_fields.push_back(MainForm.current_field);
+		MainForm.dgram_fields.push_back(MainForm.current_field);
 		MainForm.current_field = "";
 		MainForm.ICCstate = 3; 
 		break; 

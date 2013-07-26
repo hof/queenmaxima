@@ -59,7 +59,7 @@ void w17_new_game()
 
 bool w17_lookup_books_wtm (TFastNode* node, int& score, int& avoid, int tmax) 
 {
-  int value = - INFINITY,
+  int value = - CHESS_INF,
     wwin = 0, 
     bwin = 0,
     draw = 0,
@@ -91,12 +91,12 @@ bool w17_lookup_books_wtm (TFastNode* node, int& score, int& avoid, int tmax)
     }
     if (dbavoid) {
       avoid = dbavoid; 
-      score = - INFINITY;
+      score = - CHESS_INF;
       return true; 
     }
     if (! value) {
       avoid = 1; 
-      score = - INFINITY;
+      score = - CHESS_INF;
       return true; 
     }
     score = value; 
@@ -107,7 +107,7 @@ bool w17_lookup_books_wtm (TFastNode* node, int& score, int& avoid, int tmax)
 
 bool w17_lookup_books_btm (TFastNode* node, int& score, int& avoid, int tmax)
 {
-  int value = - INFINITY,
+  int value = - CHESS_INF,
     wwin = 0, 
     bwin = 0,
     draw = 0,
@@ -139,12 +139,12 @@ bool w17_lookup_books_btm (TFastNode* node, int& score, int& avoid, int tmax)
     }
     if (dbavoid) {
       avoid = dbavoid; 
-      score = - INFINITY;
+      score = - CHESS_INF;
       return true; 
     }
     if (!value) {
       avoid = 1; 
-      score = - INFINITY;
+      score = - CHESS_INF;
       return true; 
     }
     score = value; 
@@ -169,10 +169,10 @@ int w17_genrootmoves_w (TFastNode* node)
 	int last = _fast_gencapsw (node, 0),
 		index = 0,	       
 		move,		
-		value=-INFINITY,
+		value=-CHESS_INF,
 		fifty = node -> fifty,
 		flags = node -> flags,
-		best = - INFINITY,
+		best = - CHESS_INF,
 		i;
 	bool inbook;
 	int bookscore, bookavoid;
@@ -278,7 +278,7 @@ int w17_genrootmoves_b (TFastNode* node)
 		move,		
 		value,
 		flags = node -> flags,
-		best = - INFINITY,
+		best = - CHESS_INF,
 		i;
 
 	bool inbook;
@@ -287,7 +287,7 @@ int w17_genrootmoves_b (TFastNode* node)
 	for (i = 0; i < last; i ++) {
 		move = g.tmoves [i];
 		_fast_dobmove (node, move);
-		value = -INFINITY; 
+		value = -CHESS_INF;
 		if (! attacked_by_PNBRQK (node, node -> bkpos)) {
 			g.rootmoves [index]. move = move;
 			g.rootmoves [index]. avoid = 0;
@@ -339,7 +339,7 @@ int w17_genrootmoves_b (TFastNode* node)
 			continue;
 		}
 		_fast_dobmove (node, move);
-		value = -INFINITY; 
+		value = -CHESS_INF;
 		if (! attacked_by_PNBRQK (node, node -> bkpos)) {			
 			g.rootmoves [index]. move = move;
 			g.rootmoves [index]. avoid = 0;
@@ -767,13 +767,13 @@ int w17_evaluate_pawns_b (TFastNode * node)
 
 void w17_print_state_stats() 
 { 
-  g_print("PIECES_PAWNS: %d\n", state_count[W17_PIECES_PAWNS]); 
-  g_print("PIECES      : %d\n", state_count[W17_PIECES]); 
-  g_print("WNOPAWNS    : %d\n", state_count[W17_WNOPAWNS]); 
-  g_print("BNOPAWNS    : %d\n", state_count[W17_BNOPAWNS]); 
-  g_print("NOPIECES    : %d\n", state_count[W17_NOPIECES]); 
-  g_print("NOWPIECES   : %d\n", state_count[W17_NOWPIECES]); 
-  g_print("NOBPIECES   : %d\n", state_count[W17_NOBPIECES]); 
+  std::cout << boost::format("PIECES_PAWNS: %d\n") % state_count[W17_PIECES_PAWNS];
+  std::cout << boost::format("PIECES      : %d\n") % state_count[W17_PIECES];
+  std::cout << boost::format("WNOPAWNS    : %d\n") % state_count[W17_WNOPAWNS];
+  std::cout << boost::format("BNOPAWNS    : %d\n") % state_count[W17_BNOPAWNS];
+  std::cout << boost::format("NOPIECES    : %d\n") % state_count[W17_NOPIECES];
+  std::cout << boost::format("NOWPIECES   : %d\n") % state_count[W17_NOWPIECES];
+  std::cout << boost::format("NOBPIECES   : %d\n") % state_count[W17_NOBPIECES];
 }
 
 int w17_eval_state(TFastNode *node)
@@ -816,7 +816,7 @@ int w17_eval_state(TFastNode *node)
     return W17_NOBPIECES;
   }
 
-  g_assert_not_reached(); 
+  BOOST_ASSERT(false);
   return 0; 
 }
 
@@ -862,7 +862,7 @@ int w17_evaluate_w(TFastNode *node, int ply, int eval_state)
     score -= w17_evaluate_pawns_b (node);
 	  
     //printf("eval_w: wp=%d bp=%d wpawn=%d bpawn=%d score=%d\n",wp,bp,node->wpawns,node->bpawns,score); 
-    g_assert (score > - INFINITY && score < INFINITY);	
+    BOOST_ASSERT (score > - CHESS_INF && score < CHESS_INF);
 	  
     return score; 
   case W17_PIECES:
@@ -928,11 +928,11 @@ int w17_evaluate_w(TFastNode *node, int ply, int eval_state)
       score += _fast_distance (node -> wkpos, node -> bpawnlist [0]);
     } 
 
-    g_assert (score > - INFINITY && score < INFINITY);
+    BOOST_ASSERT (score > - CHESS_INF && score < CHESS_INF);
     return score; 
   }
   
-  g_assert_not_reached ();
+  BOOST_ASSERT(false);
   return INVALID;		
 }
 
@@ -940,4 +940,3 @@ int w17_evaluate_b(TFastNode *node, int ply, int eval_state)
 {
 	return - (w17_evaluate_w(node,ply,eval_state));
 }
-

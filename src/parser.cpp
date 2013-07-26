@@ -25,6 +25,10 @@
 #include "parser.h"  
 #include "hashcodes.h" 
 
+using namespace std; 
+using boost::format;
+using boost::io::group;
+
 void whisper_bookmove ()
 {
   bool w0learn = false; 
@@ -58,12 +62,12 @@ void whisper_bookmove ()
   }
 
   // send(MainForm.socket_connection, str.str().c_str(), str.str().length(), 0);
-  std::cout << str.str(); 
+  cout << str.str(); 
 }
 
 void tell_crisis (int time)
 {
-    std::cout << "engine crisis time=" << time << "\n"; 
+    cout << "engine crisis time=" << time << "\n"; 
 }
 
 void print_iteration (int elapsed)
@@ -79,7 +83,7 @@ void print_iteration (int elapsed)
 		} else { 
 			scorestr << sign << ABS (g.rootscore/1000.0);
 		}
-       		std::ostringstream str; 
+		std::ostringstream str;
 		std::ostringstream str2;
 		
 		str << scorestr.str() << " d" << g.iteration << " (" << int(g.fastnodes/1000) << "Kn " << elapsed << ") "; 
@@ -100,251 +104,209 @@ void print_move (int move) {
 void print_score (int score) 
 {	
 	if (score < 0) {
-		g_print ("-");
+		cout <<  "-";
 		score = - score;		
 	} else {
-		g_print ("+");
+		cout << ("+");
 	}
 	int pawns = score / 1000,
 		millipawns = score - 1000 * pawns;
 	if (millipawns > 99) {
-		g_print ("%d.%d", pawns, millipawns);
+		cout << format("%d.%d") % pawns % millipawns;
 	}
 	else if (millipawns > 9) {
-		g_print ("%d.0%d", pawns, millipawns);
+		cout << format("%d.0%d") % pawns % millipawns;
 	} else {
-		g_print ("%d.00%d", pawns, millipawns); 
+		cout << format("%d.00%d") % pawns % millipawns; 
 	}
 }
 
 void print_square (int square) {	
-	g_print("%c%c",	FileToChar (square), RankToChar (square));
+        cout << format("%c%c") % FileToChar (square) % RankToChar (square);
 }
 
 void print_piece (int piece) {
 	switch (piece) {		
 	case PAWN:
-		g_print ("P");
+		cout << "P";
 		break;
 	case KNIGHT:
-		g_print ("N");
+		cout << "N";
 		break;
 	case BISHOP:
-		g_print ("B");
+		cout << "B";
 		break;
 	case ROOK:
-		g_print ("R");
+		cout << "R";
 		break;
 	case QUEEN:
-		g_print ("Q");
+		cout << "Q";
 		break;
 	case KING:
-		g_print ("K");
+		cout << "K";
 		break;
 	case BPAWN:
-		g_print ("p");
+		cout << "p";
 		break;
 	case BKNIGHT:
-		g_print ("n");
+		cout << "n";
 		break;
 	case BBISHOP:
-		g_print ("b");
+		cout << "b";
 		break;
 	case BROOK:
-		g_print ("r");
+		cout << "r";
 		break;
 	case BQUEEN:
-		g_print ("q");
+		cout << "q";
 		break;
 	case BKING:
-		g_print ("k");
+		cout << "k";
 		break;
 	default:
-		g_print ("?");
+		cout << "?";
 		break;
 	}
 }
 
 void _write_LAN(int connection, int move) 
 {
-	char buffer[25]; 
+	string buffer;
 	char piece = PieceToChar(PIECE(move));
 	char seperator = _CAPTURE(move)? 'x':'-';
 	
 	if (!SPECIAL(move)) {
 		if (piece==' ') { 
-			g_snprintf(buffer,25,"%c%c%c%c%c\n",
-				FileToChar(SOURCESQ(move)),
-				RankToChar(SOURCESQ(move)),
-				seperator,
-				FileToChar(TARGETSQ(move)),
-				RankToChar(TARGETSQ(move)));   
-
-			send(connection,buffer,6, 0); 
-
+			buffer = str(format("%c%c%c%c%c\n") %
+				FileToChar(SOURCESQ(move)) % RankToChar(SOURCESQ(move)) % seperator %
+				FileToChar(TARGETSQ(move)) % RankToChar(TARGETSQ(move)));
+			send(connection,buffer.c_str(),6, 0);
 			return;
 		} else { 
-			g_snprintf(buffer,25,"%c%c%c%c%c%c\n",
-				piece,
-				FileToChar(SOURCESQ(move)),
-				RankToChar(SOURCESQ(move)),
-				seperator,
-				FileToChar(TARGETSQ(move)),
-				RankToChar(TARGETSQ(move)));   
-
-			send(connection,buffer,7, 0);
+			buffer = str(format("%c%c%c%c%c%c\n") %
+				piece % FileToChar(SOURCESQ(move)) % RankToChar(SOURCESQ(move)) % seperator %
+				FileToChar(TARGETSQ(move)) % RankToChar(TARGETSQ(move)));
+			send(connection,buffer.c_str(),7, 0);
 			return;
 		}
 	}
 	switch SPECIALCASE(move) {
 	case _PLUNKMOVE:
-		g_snprintf(buffer,25,"%c@%c%c\n", 
-			   piece,
-			   FileToChar(TARGETSQ(move)),
-			   RankToChar(TARGETSQ(move))); 
-
-		send(connection,buffer,5, 0); 
-
+		buffer = str(format("%c@%c%c\n") % piece % FileToChar(TARGETSQ(move)) % RankToChar(TARGETSQ(move)));
+		send(connection,buffer.c_str(),5, 0);
 		return; 
 	case _SHORT_CASTLE:
 		send(connection,"O-O\n",4, 0); 
 		return;
 	case _LONG_CASTLE:
-
 		send(connection,"O-O-O\n",6, 0);
 		return;
 	case _EN_PASSANT:
-		g_snprintf(buffer,25,"%c%cx%c%c\n",
-			FileToChar(SOURCESQ(move)),
-			RankToChar(SOURCESQ(move)),
-			FileToChar(TARGETSQ(move)),
-			RankToChar(TARGETSQ(move))); 
-		send(connection,buffer,6, 0); 
+		buffer = str(format("%c%cx%c%c\n") % FileToChar(SOURCESQ(move)) % RankToChar(SOURCESQ(move)) %
+			FileToChar(TARGETSQ(move)) % RankToChar(TARGETSQ(move)));
+		send(connection,buffer.c_str(),6, 0);
 		return;
 	case _QUEEN_PROMOTION:
-		g_snprintf(buffer,25,"%c%c%c%c%c=Q\n",
-			FileToChar(SOURCESQ(move)),
-			RankToChar(SOURCESQ(move)),
-			seperator,
-			FileToChar(TARGETSQ(move)),
-			RankToChar(TARGETSQ(move)));   
-		send(connection,buffer,8, 0); 
+		buffer = str(format("%c%c%c%c%c=Q\n") % FileToChar(SOURCESQ(move)) % RankToChar(SOURCESQ(move)) %
+			seperator % FileToChar(TARGETSQ(move)) % RankToChar(TARGETSQ(move)));
+		send(connection,buffer.c_str(),8, 0);
 		return;
 	case _ROOK_PROMOTION: 
-		g_snprintf(buffer,25,"%c%c%c%c%c=R\n",
-			FileToChar(SOURCESQ(move)),
-			RankToChar(SOURCESQ(move)),
-			seperator,
-			FileToChar(TARGETSQ(move)),
-			RankToChar(TARGETSQ(move)));   
-		send(connection,buffer,8, 0); 
+		buffer = str(format("%c%c%c%c%c=R\n") % FileToChar(SOURCESQ(move)) % RankToChar(SOURCESQ(move)) %
+			seperator % FileToChar(TARGETSQ(move)) % RankToChar(TARGETSQ(move)));
+		send(connection,buffer.c_str(),8, 0);
 		return;
 	case _BISHOP_PROMOTION:
-		g_snprintf(buffer,25,"%c%c%c%c%c=B\n",
-			FileToChar(SOURCESQ(move)),
-			RankToChar(SOURCESQ(move)),
-			seperator,
-			FileToChar(TARGETSQ(move)),
-			RankToChar(TARGETSQ(move)));   
-		send(connection,buffer,8, 0); 
+		buffer = str(format("%c%c%c%c%c=B\n") % FileToChar(SOURCESQ(move)) % RankToChar(SOURCESQ(move)) %
+			seperator % FileToChar(TARGETSQ(move)) % RankToChar(TARGETSQ(move)));
+		send(connection,buffer.c_str(),8, 0);
 		return;
 	case _KNIGHT_PROMOTION: 
-		g_snprintf(buffer,25,"%c%c%c%c%c=N\n",
-			FileToChar(SOURCESQ(move)),
-			RankToChar(SOURCESQ(move)),
-			seperator,
-			FileToChar(TARGETSQ(move)),
-			RankToChar(TARGETSQ(move)));   
-		send(connection,buffer,8, 0); 
+		buffer = str(format("%c%c%c%c%c=N\n") % FileToChar(SOURCESQ(move)) % RankToChar(SOURCESQ(move)) %
+			seperator % FileToChar(TARGETSQ(move)) % RankToChar(TARGETSQ(move)));
+		send(connection,buffer.c_str(),8, 0);
 		return;
 	default: 
-	        g_error("Not Sent. %c%c%c%c%c%c - Illegal move representation.\n",
-			piece,
-			FileToChar(SOURCESQ(move)),
-			RankToChar(SOURCESQ(move)),
-			seperator,
-			FileToChar(TARGETSQ(move)),
-			RankToChar(TARGETSQ(move)));   
-		return;
+		cerr << format("Not Sent. %c%c%c%c%c%c - Illegal move representation.\n") %
+				piece % FileToChar(SOURCESQ(move)) % RankToChar(SOURCESQ(move)) % seperator % FileToChar(TARGETSQ(move)) %
+		RankToChar(TARGETSQ(move));
+	return;
 	} 
 }
 
 void _print_SAN (int move)
 {
-        char piece = PieceToChar(PIECE (move));
+	char piece = PieceToChar(PIECE (move));
 	char from1 = FileToChar (SOURCESQ (move));
 	char to1 = FileToChar (TARGETSQ (move));
 	char to2 = RankToChar (TARGETSQ (move));
-        if (move == 0) {
-                g_print ("null");
-                return;
-        }
+	if (move == 0) {
+			cout << "null";
+			return;
+	}
 
-        if (!SPECIAL(move)) {
-                if (piece == ' ') { //pawn
+	if (!SPECIAL(move)) {
+		if (piece == ' ') { //pawn
 			if (_CAPTURE (move)) {
-				g_print ("%cx%c%c", from1, to1, to2);
+				cout <<  format("%cx%c%c") % from1 % to1 % to2;
 			} else {
-				g_print ("%c%c", to1, to2);
+				cout << format("%c%c") % to1 % to2;
 			}
-                } else {
+		} else {
 			if (_CAPTURE (move)) {
-				g_print ("%cx%c%c",piece, to1, to2);
+				cout << format("%cx%c%c") % piece % to1 % to2;
 			} else {
-				g_print ("%c%c%c", piece, to1, to2);
+				cout << format("%c%c%c") % piece % to1 % to2;
 			}
-                }
-        } else {
-                switch SPECIALCASE(move) {
-                case _PLUNKMOVE:
-                        g_print("%c@%c%c", piece, to1, to2);
-                        break;
-                case _SHORT_CASTLE:
-                        g_print("O-O");
-                        break;
-                case _LONG_CASTLE:
-                        g_print("O-O-O");
-                        break;
-                case _EN_PASSANT:
-                        g_print("%cx%c%cep", from1, to1, to2);
-                        break;
-                case _QUEEN_PROMOTION:
-			if (_CAPTURE (move)) {
-                        	g_print("%cx%c%c=Q", from1, to1, to2);
-			} else {
-				g_print("%c%c=Q", to1, to2);
-			}
-                        break;
-                case _ROOK_PROMOTION:
-			if (_CAPTURE (move)) {
-                                g_print("%cx%c%c=R", from1, to1, to2);
-                        } else {
-                                g_print("%c%c=R", to1, to2);
-                        }
-                        break;
-                case _BISHOP_PROMOTION:
-			if (_CAPTURE (move)) {
-                                g_print("%cx%c%c=B", from1, to1, to2);
-                        } else {
-                                g_print("%c%c=B", to1, to2);
-                        }
-                        break;
-                case _KNIGHT_PROMOTION:
-			if (_CAPTURE (move)) {
-                                g_print("%cx%c%c=N", from1, to1, to2);
-                        } else {
-                                g_print("%c%c=N", to1, to2);
-                        }
-                        break;
-                default:
-			g_print ("???");
-                        return;
-                }
-        }
-
+		}
+	} else {
+		switch SPECIALCASE(move) {
+			case _PLUNKMOVE:
+				cout << format("%c@%c%c") % piece % to1 % to2;
+				break;
+			case _SHORT_CASTLE:
+				cout << "O-O";
+				break;
+			case _LONG_CASTLE:
+				cout << "O-O-O";
+				break;
+			case _EN_PASSANT:
+				cout << format("%cx%c%cep") % from1 % to1 % to2;
+				break;
+			case _QUEEN_PROMOTION:
+				if (_CAPTURE (move)) {
+					cout << format("%cx%c%c=Q") % from1 % to1 % to2;
+				} else {
+					cout << format("%c%c=Q") % to1 % to2;
+				}
+				break;
+			case _ROOK_PROMOTION:
+				if (_CAPTURE (move)) {
+					cout << format("%cx%c%c=R") % from1 % to1 % to2;
+				} else {
+					cout << format("%c%c=R") % to1 % to2;
+				}
+				break;
+			case _BISHOP_PROMOTION:
+				if (_CAPTURE (move)) {
+					cout << format("%cx%c%c=B") % from1 % to1 % to2;
+				} else {
+					cout << format("%c%c=B") % to1 % to2;
+				}
+				break;
+			case _KNIGHT_PROMOTION:
+				if (_CAPTURE (move)) {
+					cout << format("%cx%c%c=N") % from1 % to1 % to2;
+				} else {
+					cout << format("%c%c=N") % to1 % to2;
+				}
+				break;
+			default:
+				cerr << "???";
+				return;
+		}
+	}
 }
-
-
 
 void _print_LAN(int move) 
 {
@@ -352,262 +314,208 @@ void _print_LAN(int move)
 	char seperator = _CAPTURE(move)? 'x':'-';
 	
 	if (move == 0) {
-		g_print ("null");
+		cout << "null";
 		return;
 	}
 
 	if (!SPECIAL(move)) {
 		if (piece == ' ') { 
-			g_print("%c%c%c%c%c",
-				FileToChar(SOURCESQ(move)),
-				RankToChar(SOURCESQ(move)),
-				seperator,
-				FileToChar(TARGETSQ(move)),
-				RankToChar(TARGETSQ(move)));			
-			
+			cout << format("%c%c%c%c%c") % FileToChar(SOURCESQ(move)) % RankToChar(SOURCESQ(move)) %
+					seperator % FileToChar(TARGETSQ(move)) % RankToChar(TARGETSQ(move));
 		} else { 
-			g_print ("%c%c%c%c%c%c",
-				piece,
-				FileToChar(SOURCESQ(move)),
-				RankToChar(SOURCESQ(move)),
-				seperator,
-				FileToChar(TARGETSQ(move)),
-				RankToChar(TARGETSQ(move)));   
-			
+			cout << format("%c%c%c%c%c%c") % piece % FileToChar(SOURCESQ(move)) % RankToChar(SOURCESQ(move)) %
+				seperator % FileToChar(TARGETSQ(move)) % RankToChar(TARGETSQ(move));
 		}		
 	} else {
 		switch SPECIALCASE(move) {
 		case _PLUNKMOVE:
-			g_print("%c@%c%c", 
-				piece,
-				FileToChar(TARGETSQ(move)),
-				RankToChar(TARGETSQ(move))); 		
+			cout << format("%c@%c%c") % piece % FileToChar(TARGETSQ(move)) % RankToChar(TARGETSQ(move));
 			break; 
 		case _SHORT_CASTLE:
-			g_print("O-O"); 
+			cout << "O-O";
 			break;
 		case _LONG_CASTLE:
-			g_print("O-O-O");
+			cout << "O-O-O";
 			break;
 		case _EN_PASSANT:
-			g_print("%c%cx%c%c",
-				FileToChar(SOURCESQ(move)),
-				RankToChar(SOURCESQ(move)),
-				FileToChar(TARGETSQ(move)),
-				RankToChar(TARGETSQ(move))); 
+			cout << format("%c%cx%c%c") % FileToChar(SOURCESQ(move)) % RankToChar(SOURCESQ(move)) %
+					FileToChar(TARGETSQ(move)) % RankToChar(TARGETSQ(move));
 			break;
 		case _QUEEN_PROMOTION:
-			g_print("%c%c%c%c%c=Q",
-				FileToChar(SOURCESQ(move)),
-				RankToChar(SOURCESQ(move)),
-				seperator,
-				FileToChar(TARGETSQ(move)),
-				RankToChar(TARGETSQ(move)));   
+			cout << format("%c%c%c%c%c=Q") % FileToChar(SOURCESQ(move)) % RankToChar(SOURCESQ(move)) %
+					seperator % FileToChar(TARGETSQ(move)) % RankToChar(TARGETSQ(move));
 			break;
 		case _ROOK_PROMOTION: 
-			g_print("%c%c%c%c%c=R",
-				FileToChar(SOURCESQ(move)),
-				RankToChar(SOURCESQ(move)),
-				seperator,
-				FileToChar(TARGETSQ(move)),
-				RankToChar(TARGETSQ(move)));   
+			cout << format("%c%c%c%c%c=R") % FileToChar(SOURCESQ(move)) % RankToChar(SOURCESQ(move)) %
+					seperator % FileToChar(TARGETSQ(move)) % RankToChar(TARGETSQ(move));
 			break;
 		case _BISHOP_PROMOTION:
-			g_print("%c%c%c%c%c=B",
-				FileToChar(SOURCESQ(move)),
-				RankToChar(SOURCESQ(move)),
-				seperator,
-				FileToChar(TARGETSQ(move)),
-				RankToChar(TARGETSQ(move)));   
+			cout << format("%c%c%c%c%c=B") % FileToChar(SOURCESQ(move)) % RankToChar(SOURCESQ(move)) %
+					seperator % FileToChar(TARGETSQ(move)) % RankToChar(TARGETSQ(move));
 			break;
 		case _KNIGHT_PROMOTION: 
-			g_print("%c%c%c%c%c=N",
-				FileToChar(SOURCESQ(move)),
-				RankToChar(SOURCESQ(move)),
-				seperator,
-				FileToChar(TARGETSQ(move)),
-				RankToChar(TARGETSQ(move)));   
+			cout << format("%c%c%c%c%c=N") % FileToChar(SOURCESQ(move)) % RankToChar(SOURCESQ(move)) %
+					seperator % FileToChar(TARGETSQ(move)) % RankToChar(TARGETSQ(move));
 			break;
 		default: 
-			g_error("%c%c%c%c%c%c - Illegal move representation.",
-				piece,
-				FileToChar(SOURCESQ(move)),
-				RankToChar(SOURCESQ(move)),
-				seperator,
-				FileToChar(TARGETSQ(move)),
-				RankToChar(TARGETSQ(move)));   
+			cerr << format("%c%c%c%c%c%c - Illegal move representation.") % piece % FileToChar(SOURCESQ(move)) %
+					RankToChar(SOURCESQ(move)) % seperator % FileToChar(TARGETSQ(move)) % RankToChar(TARGETSQ(move));
 			return;
 		}
 	}
 
 	if (move & _CHECKING) {
-		g_print ("+");
+		cout << "+";
 	}	
 }
 
 void _fast_SAN (std::ostringstream& str, int move)
 {
-        char piece = PieceToChar(PIECE (move));
+	char piece = PieceToChar(PIECE (move));
 	char from1 = FileToChar (SOURCESQ (move));
 	char to1 = FileToChar (TARGETSQ (move));
 	char to2 = RankToChar (TARGETSQ (move));
-        if (move == 0) {
-                str << "null";
-                return;
-        }
+	if (move == 0) {
+		str << "null";
+		return;
+	}
 
-        if (!SPECIAL(move)) {
-                if (piece == ' ') { //pawn
+	if (!SPECIAL(move)) {
+		if (piece == ' ') { //pawn
 			if (_CAPTURE (move)) {
-                            // g_print ("%cx%c%c", from1, to1, to2);
-                            str << from1 << 'x' << to1 << to2; 
-			} else {                            
-                            // g_print ("%c%c", to1, to2);
-                            str << to1 << to2; 
-			}
-                } else {
-			if (_CAPTURE (move)) {
-                            // g_print ("%cx%c%c",piece, to1, to2);
-                            str << piece << 'x' << to1 << to2; 
+				str << from1 << 'x' << to1 << to2;
 			} else {
-                            // g_print ("%c%c%c", piece, to1, to2);
-                            str << piece << to1 << to2; 
+				str << to1 << to2;
 			}
-                }
-        } else {
-                switch SPECIALCASE(move) {
-                case _PLUNKMOVE:
-                        // g_print("%c@%c%c", piece, to1, to2);
-                        str << piece << '@' << to1 << to2;  
-                        break;
-                case _SHORT_CASTLE:
-                        // g_print("O-O");
-                        str << "O-O"; 
-                        break;
-                case _LONG_CASTLE:
-                        // g_print("O-O-O");
-                        str << "O-O-O";
-                        break;
-                case _EN_PASSANT:
-                        // g_print("%cx%c%cep", from1, to1, to2);
-                        str << from1 << 'x' << to1 << to2 << "ep"; 
-                        break;
-                case _QUEEN_PROMOTION:
+		} else {
 			if (_CAPTURE (move)) {
-                            // g_print("%cx%c%c=Q", from1, to1, to2);
-                            str << from1 << 'x' << to1 << to2 << "=Q"; 
+				str << piece << 'x' << to1 << to2;
 			} else {
-                            // g_print("%c%c=Q", to1, to2);
-                            str << to1 << to2 << "=Q"; 
+				str << piece << to1 << to2;
 			}
-                        break;
-                case _ROOK_PROMOTION:
-			if (_CAPTURE (move)) {
-                            // g_print("%cx%c%c=R", from1, to1, to2);
-                            str << from1 << 'x' << to1 << to2 << "=R"; 
-                        } else {
-                            // g_print("%c%c=R", to1, to2);
-                            str << to1 << to2 << "=R"; 
-                        }
-                        break;
-                case _BISHOP_PROMOTION:
-			if (_CAPTURE (move)) {
-                            // g_print("%cx%c%c=B", from1, to1, to2);
-                            str << from1 << 'x' << to1 << to2 << "=B"; 
-                        } else {
-                            // g_print("%c%c=B", to1, to2);
-                            str << to1 << to2 << "=B"; 
-                        }
-                        break;
-                case _KNIGHT_PROMOTION:
-			if (_CAPTURE (move)) {
-                            // g_print("%cx%c%c=N", from1, to1, to2);
-                            str << from1 << 'x' << to1 << to2 << "=N"; 
-                        } else {
-                            // g_print("%c%c=N", to1, to2);
-                            str << to1 << to2 << "=N"; 
-                        }
-                        break;
-                default:
-			str << "???";
-                        return;
-                }
-        }
+		}
+	} else {
+		switch SPECIALCASE(move) {
+			case _PLUNKMOVE:
+				str << piece << '@' << to1 << to2;
+				break;
+			case _SHORT_CASTLE:
+				str << "O-O";
+				break;
+			case _LONG_CASTLE:
+				str << "O-O-O";
+				break;
+			case _EN_PASSANT:
+				str << from1 << 'x' << to1 << to2 << "ep";
+				break;
+			case _QUEEN_PROMOTION:
+				if (_CAPTURE (move)) {
+					str << from1 << 'x' << to1 << to2 << "=Q";
+				} else {
+					str << to1 << to2 << "=Q";
+				}
+				break;
+			case _ROOK_PROMOTION:
+				if (_CAPTURE (move)) {
+					str << from1 << 'x' << to1 << to2 << "=R";
+				} else {
+					str << to1 << to2 << "=R";
+				}
+				break;
+			case _BISHOP_PROMOTION:
+				if (_CAPTURE (move)) {
+					str << from1 << 'x' << to1 << to2 << "=B";
+				} else {
+					str << to1 << to2 << "=B";
+				}
+				break;
+			case _KNIGHT_PROMOTION:
+				if (_CAPTURE (move)) {
+					str << from1 << 'x' << to1 << to2 << "=N";
+				} else {
+					str << to1 << to2 << "=N";
+				}
+				break;
+			default:
+				str << "???";
+				return;
+		}
+	}
 }
 
 void _fast_LAN(std::ostringstream& str, int move) 
 {
  	char piece = PieceToChar(PIECE (move));
-        char from1 = FileToChar (SOURCESQ (move));
+	char from1 = FileToChar (SOURCESQ (move));
 	char from2 = RankToChar (SOURCESQ (move));
-        char to1 = FileToChar (TARGETSQ (move));
-        char to2 = RankToChar (TARGETSQ (move));
-        if (move == 0) {
-                str << "null";
-                return;
-        }
+	char to1 = FileToChar (TARGETSQ (move));
+	char to2 = RankToChar (TARGETSQ (move));
+	if (move == 0) {
+		str << "null";
+		return;
+	}
 
-        if (!SPECIAL(move)) {
-                if (piece == ' ') { //pawn
-                        if (_CAPTURE (move)) {
+	if (!SPECIAL(move)) {
+		if (piece == ' ') { //pawn
+			if (_CAPTURE (move)) {
 				str << from1 << from2 << "x" << to1 << to2;                                 
-                        } else {
+			} else {
 				str << from1 << from2 << "-" << to1 << to2;                                 
-                        }
-                } else {
-                        if (_CAPTURE (move)) {
+			}
+		} else {
+			if (_CAPTURE (move)) {
 				str << piece << from1 << from2 << "x" << to1 << to2;                                 
-                        } else {
+			} else {
 				str << piece << from1 << from2 << "-" << to1 << to2;                                 
-                        }
-                }
-        } else {
-                switch SPECIALCASE(move) {
-                case _PLUNKMOVE:
-			str << piece << "@" << to1 << to2;                         
-                        break;
-                case _SHORT_CASTLE:
-			str << "O-O";                         
-                        break;
-                case _LONG_CASTLE:
-			str << "O-O-O";                         
-                        break;
-                case _EN_PASSANT:
-			str << from1 << from2 << "x" << to1 << to2 << "ep";                         
-                        break;
-                case _QUEEN_PROMOTION:
-                        if (_CAPTURE (move)) {
-				str << from1 << from2 << "x" << to1 << to2 << "=Q";                                 
-                        } else {
-				str << from1 << from2 << "-" << to2 << to2 << "=Q";                                 
-                        }
-                        break;
-		case _ROOK_PROMOTION:
-                        if (_CAPTURE (move)) {
-				str << from1 << "x" << to1 << to2 << "=R";                                 
-                        } else {
-				str << to1 << to2 << "=R";                                 
-                        }
-                        break;
-                case _BISHOP_PROMOTION:
-                        if (_CAPTURE (move)) {
-				str << from1 << "x" << to1 << to2 << "=B";                                 
-                        } else {
-				str << to1 << to2 << "=B";                                 
-                        }
-                        break;
-                case _KNIGHT_PROMOTION:
-                        if (_CAPTURE (move)) {
-				str << from1 << "x" << to1 << to2 << "=N";                                 
-                        } else {
-				str << to1 << to2 << "=N";                                 
-                        }
-                        break;
+			}
+		}
+	} else {
+		switch SPECIALCASE(move) {
+			case _PLUNKMOVE:
+				str << piece << "@" << to1 << to2;
+				break;
+			case _SHORT_CASTLE:
+				str << "O-O";
+				break;
+			case _LONG_CASTLE:
+				str << "O-O-O";
+				break;
+			case _EN_PASSANT:
+				str << from1 << from2 << "x" << to1 << to2 << "ep";
+				break;
+			case _QUEEN_PROMOTION:
+				if (_CAPTURE (move)) {
+					str << from1 << from2 << "x" << to1 << to2 << "=Q";
+				} else {
+					str << from1 << from2 << "-" << to2 << to2 << "=Q";
+				}
+				break;
+			case _ROOK_PROMOTION:
+				if (_CAPTURE (move)) {
+					str << from1 << "x" << to1 << to2 << "=R";
+				} else {
+					str << to1 << to2 << "=R";
+				}
+				break;
+			case _BISHOP_PROMOTION:
+				if (_CAPTURE (move)) {
+					str << from1 << "x" << to1 << to2 << "=B";
+				} else {
+					str << to1 << to2 << "=B";
+				}
+				break;
+			case _KNIGHT_PROMOTION:
+				if (_CAPTURE (move)) {
+					str << from1 << "x" << to1 << to2 << "=N";
+				} else {
+					str << to1 << to2 << "=N";
+				}
+				break;
                 default:
 			str << "<move exception>";                         
-                        return;
-                }
-        }
+				return;
+		}
+	}
 }
 
 int ParseXboardMove(TFastNode* node, const char*  str)
@@ -652,7 +560,7 @@ int ParseXboardMove(TFastNode* node, const char*  str)
 
 	if (strlen(str)==5) { 
 		/* must be a promotion */ 
-		g_print("promotion\n"); 
+		cout << "promotion\n";
 		switch(str[4]) { 
 		case 'n' :
 				/* promotion to KNIGHT */ 
@@ -667,22 +575,20 @@ int ParseXboardMove(TFastNode* node, const char*  str)
 				return ENCODESPECIAL(ssq,tsq,PAWN,cap,_QUEEN_PROMOTION); 
 		}
 
-		g_print("parse promotion \n"); 
-
+		cout << "parse promotion \n";
 	}
 
 	if (cap) { 
 		if (node->flags & _WTM) { 
-			g_print("parsexboard_wcap string=%s ssq=%d tsq=%d cap=%d\n",str,ssq,tsq, cap); 
+			cout << format("parsexboard_wcap string=%s ssq=%d tsq=%d cap=%d\n") % str % ssq % tsq % cap;
 			return ENCODECAPTURE(ssq,tsq,node->matrix[ssq],cap);
 		} else {
-			g_print("parsexboard_bcap string=%s ssq=%d tsq=%d cap=%d\n",str,ssq,tsq, cap); 
+			cout << format("parsexboard_bcap string=%s ssq=%d tsq=%d cap=%d\n") % str % ssq % tsq % cap;
 			return ENCODECAPTURE(ssq,tsq,node->matrix[ssq]-KING,cap); 
 		}			
 	} else { 
 
-		/* no capture. by matrix[tsq]==0 but it still can be 
-		   an EP capture */ 
+		/* no capture. by matrix[tsq]==0 but it still can be an EP capture */
 		if (_EPSQ(node) == tsq && (node->matrix[ssq]==PAWN || node->matrix[ssq]==BPAWN)) {
 			return  ENCODEEP(ssq,tsq); 
 		} 
@@ -693,7 +599,6 @@ int ParseXboardMove(TFastNode* node, const char*  str)
 			return ENCODEMOVE(ssq,tsq,node->matrix[ssq]-KING);
 		}
 	}
-
 }
 
 int ParseSmith(TFastNode *node, const char* str) 

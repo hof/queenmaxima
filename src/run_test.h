@@ -19,7 +19,7 @@
 #ifndef runtestH
 #define runtestH
 
-void run_test (TFastNode * node, gchar * test, int tmax);
+void run_test (TFastNode * node, std::string test, int tmax);
 
 #endif
 

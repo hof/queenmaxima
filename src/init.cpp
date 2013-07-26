@@ -247,8 +247,7 @@ void Master_Init(void)
 
     InitHash();     
     
-    g.timer = g_timer_new();
-    g_timer_start(g.timer); 		
+    g.timer.start();
     g.dbhandle = new db_base(); 
 };
 

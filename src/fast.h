@@ -24,15 +24,16 @@
 #include <sstream>
 #include <cstring>
 #include <stdlib.h> 
-
+#include <cmath>
+#include <boost/assert.hpp>
+#include <boost/asio.hpp>
+#include <boost/format.hpp>
 
 #include <time.h>
-#include <glib.h>
 #include "defines.h" 
 #include "db_base.h"
 
 /* defines */ 
-
 
 #define MSECS_PER_SEC       1000
 #define MSECS_PER_MIN       (60 * MSECS_PER_SEC)
@@ -110,7 +111,7 @@
 #define g8 62
 #define h8 63
 
-#define INFINITY     9999999
+#define CHESS_INF    9999999
 #define INVALID      1234567
 #define ILLEGAL      1313131
 #define MATE         1000000
@@ -119,6 +120,9 @@
 #define MAXDEPTH     (MAXPLY*FULL_PLY)
 #define MAXQDEPTH    50
 #define EXTENSION    (FULL_PLY)
+#define ABS(x)	     std::abs(x)
+#define MIN(x,y)	 std::min(x,y)
+#define MAX(x,y)	 std::max(x,y)
 
 #define MATE_VALUE(x)      ((x)>= (MATE-1000) && (x)<= (MATE+1000))
 #define MATED_VALUE(x)     ((x)<=-(MATE-1000) && (x)>=-(MATE+1000))
@@ -233,26 +237,48 @@
 
 /* structures and datatypes */ 
 
-    // the only globals left 
-    extern int _maxd;
-    extern int window1;
-    extern int window2;
-    extern const int avoidscore[4];
+// the only globals left
+extern int _maxd;
+extern int window1;
+extern int window2;
+extern const int avoidscore[4];
 
-	struct TRootMove {
-		int  move;
-		int  matevalue;	
-		bool bookmove; 
-		int  bookvalue;
-		int  value;       
-		int  avoid;
-		int  nodes;
-		int  fifty;
-		bool draw;
-		bool unknown;
-		bool exact_score;
-		bool forced_move; 
+struct TRootMove {
+	int  move;
+	int  matevalue;
+	bool bookmove;
+	int  bookvalue;
+	int  value;
+	int  avoid;
+	int  nodes;
+	int  fifty;
+	bool draw;
+	bool unknown;
+	bool exact_score;
+	bool forced_move;
+};
+
+typedef boost::date_time::microsec_clock< boost::posix_time::ptime > msecc_t;
+
+struct TTimer {
+	long long startTime;
+
+	TTimer() { startTime = current_timestamp(); };
+
+	void start() { startTime = current_timestamp(); };
+	void stop() { };
+	int elapsed() {
+		long long now = current_timestamp();
+		long long elapsed = (now - startTime);
+		return (int)elapsed;
 	};
+	long long current_timestamp() {
+	    struct timeval te;
+	    gettimeofday(&te, NULL); // get current time
+	    long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // caculate milliseconds
+	    return milliseconds;
+	};
+};
 
 struct TFastNode 
 {
@@ -327,7 +353,7 @@ struct TFastNode
 
 	// global vars
 	struct Vars {
-	    GTimer* timer;  
+	    TTimer  timer;
 	    _int64  stoptime; 
 	    _int64  maxtime;
             _int64  timeleft; 
@@ -345,33 +371,33 @@ struct TFastNode
 	    int last_known_nps; 
 	    int tmax; 
 
-            db_base* dbhandle;
+		db_base* dbhandle;
 
-            // callbacks
-            //void (*depth_completed_callback)();
-            //void (*search_completed_callback)();
+		// callbacks
+		//void (*depth_completed_callback)();
+		//void (*search_completed_callback)();
 
-            /* add 1 ply for the termintating 0 */
-            int		pv [MAXPLY+1] [MAXPLY+1];
-                
-            int     path[MAXPLY];
-            int     evalpath [MAXPLY];
-            int     maxpath [51];
-            bool    nullmate [MAXPLY];
-            int     nullmate_move [MAXPLY];
-            bool    unquiet_ext [MAXPLY];
+		/* add 1 ply for the termintating 0 */
+		int		pv [MAXPLY+1] [MAXPLY+1];
 
-            int	cutoffs_w [100];
-            int	cutoffs_b [100];
+		int     path[MAXPLY];
+		int     evalpath [MAXPLY];
+		int     maxpath [51];
+		bool    nullmate [MAXPLY];
+		int     nullmate_move [MAXPLY];
+		bool    unquiet_ext [MAXPLY];
+
+		int	cutoffs_w [100];
+		int	cutoffs_b [100];
 
 	    int drawscore_wtm;
 	    int drawscore_btm;
 
-            TRootMove  rootmoves [255];
-            int     tmoves [((MAXPLY + 2) << 7) + 128];
-            int     megasort [((MAXPLY + 2) << 7) + 128];
-            int     tsort [4096]; // index = ssq | tsq << 6 dus: (move & 4095)
-            _int64  reptable [150];  
+		TRootMove  rootmoves [255];
+		int     tmoves [((MAXPLY + 2) << 7) + 128];
+		int     megasort [((MAXPLY + 2) << 7) + 128];
+		int     tsort [4096]; // index = ssq | tsq << 6 dus: (move & 4095)
+		_int64  reptable [150];
 	}; 
 
 	struct Tables { 

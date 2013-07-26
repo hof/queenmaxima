@@ -35,13 +35,13 @@
 //PRINT_EVAL
 //shows a part of the evaluation on the screen
 
-void print_score (TFastNode * node, int &oldscore, gchar * str)
+void print_score (TFastNode * node, int &oldscore, std::string str)
 {
 	if (node->score != oldscore) {
-		g_print ("*** ");		
+		std::cout << "*** ";
 		::print_score (node->score-oldscore);
-		g_print ("...");
-		g_print ("%s", str);
+		std::cout << "...";
+		std::cout << boost::format("%s") % str;
 		oldscore = node->score;
 	}
 } 

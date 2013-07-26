@@ -43,7 +43,6 @@ struct TMainForm {
     
     // icc connection
     int       socket_connection;
-    int       relay_connection; 
     bool      lost_connection;
 
     /* ---- stats about the current game */ 

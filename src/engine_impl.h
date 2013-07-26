@@ -35,7 +35,7 @@ struct Tengine_records {
 
 extern TFastNode engine_rootnode;
 extern Tengine_records   engine_records[512];
-extern int               engine_rootply; 
+extern int engine_rootply;
 
 // init 
 void init_engine(); 
@@ -57,5 +57,6 @@ void game_start();
 void game_move_forward(int move);
 void game_search(int ui_ply, int ui_lastmove, int whitetime, int blacktime, int increment);
 void game_end(); 
+
 
 #endif

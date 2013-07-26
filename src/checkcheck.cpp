@@ -37,7 +37,7 @@ bool checkcheck_w (TFastNode* node, int move) { //check if white move checks bla
 		offset = t.direction [sq] [node->bkpos];
 		sq += offset;		
 		while (sq != node -> bkpos) {
-			g_assert (sq >= 0 && sq <= 63);
+			BOOST_ASSERT (sq >= 0 && sq <= 63);
 			if (node->matrix [sq]) {				
 				goto AFTREKSCHAAK;
 			}			
@@ -60,7 +60,7 @@ bool checkcheck_w (TFastNode* node, int move) { //check if white move checks bla
 				}
 				sq = t.sqonline [node -> bkpos] [sq];
 				while (sq != node -> bkpos) {				
-					g_assert (sq >= 0 && sq <= 63);
+					BOOST_ASSERT (sq >= 0 && sq <= 63);
 					piece = node -> matrix [sq];
 					if (piece) {
 						if (piece < KING && piece > KNIGHT && t.pieceattacks [piece] [sq] [node->bkpos]) {
@@ -163,7 +163,7 @@ bool checkcheck_w (TFastNode* node, int move) { //check if white move checks bla
 			offset = t.direction [sq] [node->bkpos];
 			sq += offset;		
 			while (sq != node -> bkpos) {
-				g_assert (sq >= 0 && sq <= 63);
+				BOOST_ASSERT (sq >= 0 && sq <= 63);
 				if (node->matrix [sq]) {				
 					return false;
 				}			
@@ -189,7 +189,7 @@ bool checkcheck_w (TFastNode* node, int move) { //check if white move checks bla
 	}
 	sq = t.sqonline [node->bkpos] [sq];
 	while (sq != node -> bkpos) {		
-		g_assert (sq >= 0 && sq <= 63);
+		BOOST_ASSERT (sq >= 0 && sq <= 63);
 		piece = node->matrix [sq];
 		if (piece) {
 			return piece < KING && piece > KNIGHT && t.pieceattacks [piece] [sq] [node->bkpos];
@@ -245,7 +245,7 @@ bool checkcheck_b (TFastNode* node, int move)
 				}
 				sq = t.sqonline [node->wkpos] [sq];
 				while (sq != node -> wkpos) {				
-					g_assert (sq >= 0 && sq <= 63);
+					BOOST_ASSERT (sq >= 0 && sq <= 63);
 					piece = node -> matrix [sq];
 					if (piece) {
 						if (piece > BKNIGHT && t.pieceattacks [piece - KING] [sq] [node->wkpos]) {
@@ -382,13 +382,3 @@ bool checkcheck_b (TFastNode* node, int move)
 	}
 	return false;	
 }
-
-
-
-
-
-
-
-
-
-

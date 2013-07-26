@@ -32,7 +32,6 @@
 #include "init.h"
 #include "hash.h"
 #include "tm_icc.h"
-#include "relay.h" 
 
 /* engine vars */ 
 pthread_t         *engine_thread;
@@ -95,7 +94,7 @@ void engine_update_stats()
 	engine_records[engine_rootply].move = g.rootmoves[0].move; 
 	engine_records[engine_rootply].hashcode_after_move = engine_rootnode.hashcode; 
 	engine_records[engine_rootply].score = /*g.rootscore;*/ g.rootmoves[0].value; 	       
-	engine_records[engine_rootply].thinktime = (int)(g_timer_elapsed (g.timer, NULL) * 1000); 
+	engine_records[engine_rootply].thinktime = (int)(g.timer.elapsed () * 1000);
 	engine_records[engine_rootply].nodes = g.fastnodes;
 //		if (g.fastnodes > g.last_known_nps && engine_records[engine_rootply].thinktime>1000) {
 	unsigned long nodes = g.fastnodes*1000;
@@ -119,13 +118,13 @@ void stop_thinking()
     /* we must stop the engine because the game has ended. */ 
     pthread_mutex_lock(statemutex);
     { 
-	if (s_threadstate != THREAD_STOPPING) { 
-	    s_threadstate = THREAD_STOPPING; 
-	    g.stopsearch = true; 
-	    pthread_cond_signal(cond);
-	} else {
-            g_print("Thread already stopped\n");
-	}
+		if (s_threadstate != THREAD_STOPPING) {
+			s_threadstate = THREAD_STOPPING;
+			g.stopsearch = true;
+			pthread_cond_signal(cond);
+		} else {
+			std::cout << "Thread already stopped\n";
+		}
     }
     pthread_mutex_unlock(statemutex); 
 }
@@ -135,24 +134,24 @@ int determine_pondermove ()
     int pmove;
 
     if (g.checkbook) {
-	return 0;
-	//pmove = get_move_from_db (&engine_node);
+    	return 0;
+    	//pmove = get_move_from_db (&engine_node);
     } else {
-	/* get pondermove from the pv */ 
-	pmove = g.pv[0][1]; 
+    	/* get pondermove from the pv */
+    	pmove = g.pv[0][1];
     }
     
     if (pmove == 0 && MainForm.wildnumber==0) { //guess a move only for w0
         std::cout << "warning: nothing to ponder\n";
-	if (engine_node.flags & _WTM) {
-	    if (genrootmoves_w (&engine_node)) {
-		pmove = g.rootmoves[0].move;
-	    }
-	} else {
-	    if (genrootmoves_b (&engine_node)) {
-		pmove = g.rootmoves[0].move;
-	    }
-	}	
+        if (engine_node.flags & _WTM) {
+        	if (genrootmoves_w (&engine_node)) {
+        		pmove = g.rootmoves[0].move;
+        	}
+        } else {
+        	if (genrootmoves_b (&engine_node)) {
+        		pmove = g.rootmoves[0].move;
+        	}
+        }
     }	
     return pmove;
 }
@@ -161,26 +160,24 @@ void play_move()
 {
     /* stuff the thread needs to do when done thinking and when it has a ponderhit */
     if (engine_node.flags & _WTM) { 
-	_fast_dowmove (&engine_node, g.rootmoves[0].move);
-	_fast_dowmove (&engine_rootnode, g.rootmoves [0]. move);
+    	_fast_dowmove (&engine_node, g.rootmoves[0].move);
+    	_fast_dowmove (&engine_rootnode, g.rootmoves [0]. move);
     } else { 		 
-	_fast_dobmove (&engine_node, g.rootmoves[0].move);
-	_fast_dobmove (&engine_rootnode, g.rootmoves [0]. move);
+    	_fast_dobmove (&engine_node, g.rootmoves[0].move);
+    	_fast_dobmove (&engine_rootnode, g.rootmoves [0]. move);
     }
 	
     /* de reptable updaten met de actually played move */ 
     g.reptable [engine_rootnode.fifty] = engine_rootnode.hashcode;	
     engine_lastmove = g.rootmoves[0].move; 
 
-
     /* return move to ui */
     _write_LAN(MainForm.socket_connection,g.rootmoves[0].move);
 
     /* relay the move */
     MainForm.relayply++; 
-    relay_move(g.rootmoves[0].move, MainForm.relayply); 
         
-    g_print("\n"); 
+    std::cout << "\n";
 
     if (MainForm.wildnumber == 17) {
         if (g.rootmoves[0].forced_move) {
@@ -188,11 +185,11 @@ void play_move()
         }
     }
 
-    /* cleam the draw */
+    /* clean the draw */
     if (g.rootmoves[0].draw) { 
-	if (claimdraw(&engine_rootnode,1)) {  
-	    send(MainForm.socket_connection,"draw\n",5,0); 
-	}
+    	if (claimdraw(&engine_rootnode,1)) {
+    		send(MainForm.socket_connection,"draw\n",5,0);
+    	}
     }
 
     /* nu we een zet hebben gedaan moeten we de engine statistieken updaten. */ 
@@ -203,11 +200,11 @@ void play_move()
     engine_pondermove = determine_pondermove ();
 	
     if (engine_pondermove) {
-	if (engine_node.flags & _WTM) { 
-	    _fast_dowmove (&engine_node, engine_pondermove);
-	} else { 		 
-	    _fast_dobmove (&engine_node, engine_pondermove);
-	}
+    	if (engine_node.flags & _WTM) {
+    		_fast_dowmove (&engine_node, engine_pondermove);
+    	} else {
+    		_fast_dobmove (&engine_node, engine_pondermove);
+    	}
     }
 }
 
@@ -227,59 +224,58 @@ void *engine_thread_execute(void *ptr)
 	pthread_mutex_unlock(statemutex); 
 
 	/* ---- vanaf dit punt kan stopsearch worden gewijzigd door search() of stop() */
-	g_timer_reset(g.timer);
-	g_timer_start(g.timer); 
+	g.timer.start();
 
 	if (MainForm.wildnumber==0) { 
 	    iterate(&engine_node);
 	} else if (MainForm.wildnumber==17) { 
 
-            int legals = w17_iterate(&engine_node);
+		int legals = w17_iterate(&engine_node);
 
-            if (!legals) {
-                std::cout << "w17: stop search; no legals\n";
-                // g.stopsearch = true;
-                stop_thinking(); 
-            }
+		if (!legals) {
+			std::cout << "w17: stop search; no legals\n";
+			// g.stopsearch = true;
+			stop_thinking();
+		}
 	}
 
-	g_timer_stop (g.timer);
+	g.timer.stop();
 	/* ---- tot dit punt */ 
 		
 	pthread_mutex_lock(statemutex); 
 	{		       			     
 	    switch(s_threadstate) { 
 	    case THREAD_STOPPING: 	
-	        g_print("* thread state: THREAD_STOPPING\n");
-		pthread_cond_wait(cond, statemutex);				
+	        // std::cout << "* thread state: THREAD_STOPPING\n";
+	        pthread_cond_wait(cond, statemutex);
                 /* setFen handles the new state and engine_rootnode */ 				
-		break;   
+			break;
 	    case THREAD_PONDERING:
-            case THREAD_PONDERSTOPPING:
-		if (s_threadstate==THREAD_PONDERING) { 
-		    pthread_cond_wait(cond, statemutex);	
-		}
-		if (s_threadstate != THREAD_STOPPING && s_ponderhit) {			     
-		    play_move();
-		    s_threadstate = THREAD_PONDERING; 
-		    g.maxtime = g.stoptime = 100000000; /* max pondertime */  					
-		}
-		if (s_threadstate != THREAD_STOPPING && !s_ponderhit) {
-		    /* geen ponderhit, reset engine_node */ 			
-		    if (engine_node.hashcode != engine_rootnode.hashcode) { 		
-			memcpy( &engine_node, &engine_rootnode, sizeof(TFastNode)); 
-		    }				
-		    s_threadstate = THREAD_THINKING; 
-		}
+		case THREAD_PONDERSTOPPING:
+			if (s_threadstate==THREAD_PONDERING) {
+				pthread_cond_wait(cond, statemutex);
+			}
+			if (s_threadstate != THREAD_STOPPING && s_ponderhit) {
+				play_move();
+				s_threadstate = THREAD_PONDERING;
+				g.maxtime = g.stoptime = 100000000; /* max pondertime */
+			}
+			if (s_threadstate != THREAD_STOPPING && !s_ponderhit) {
+				/* geen ponderhit, reset engine_node */
+				if (engine_node.hashcode != engine_rootnode.hashcode) {
+				memcpy( &engine_node, &engine_rootnode, sizeof(TFastNode));
+				}
+				s_threadstate = THREAD_THINKING;
+			}
 				
 		break; 
 	    case THREAD_THINKING:
-		play_move(); 
-		s_threadstate = THREAD_PONDERING; 
-		g.maxtime = g.stoptime = 100000000; /* max pondertime */  				
+	    	play_move();
+	    	s_threadstate = THREAD_PONDERING;
+	    	g.maxtime = g.stoptime = 100000000; /* max pondertime */
 		break;
 	    default:				
-		g_error("Illegal thread state (%d)\n", s_threadstate);
+	    	std::cerr << boost::format("Illegal thread state (%d)\n") % s_threadstate;
 		break;
 
 	    }
@@ -309,78 +305,77 @@ void game_search(int ui_ply, int ui_lastmove, int whitetime, int blacktime, int 
 	    break; 
 	case THREAD_PONDERING: 
 	    if (ui_lastmove==engine_pondermove) { 		
-		/* ponderhit */ 
-		s_ponderhit = true; 	
-								
-		/* ponderhit - update de rootnode */ 	
-		if (engine_rootnode.flags & _WTM) {		
-		    _fast_dowmove(&engine_rootnode, ui_lastmove);				
-		} else { 		 		
-		    _fast_dobmove(&engine_rootnode, ui_lastmove);
-		}
-				
-		/* update game info */ 
-		engine_records[engine_rootply].maxima_thinking = false; 
-		engine_records[engine_rootply].hashcode_after_move = engine_rootnode.hashcode; 
-		engine_records[engine_rootply++].move = ui_lastmove; 
-				
-		/* de reptable updaten met de actually played move */ 
-		g.reptable [engine_rootnode.fifty] = engine_rootnode.hashcode;
+			/* ponderhit */
+			s_ponderhit = true;
 
-		/* pas tmax aan */
-		gdouble secs = g_timer_elapsed (g.timer, NULL); 
-		g.stoptime = g.maxtime = g.tmax - ((int) (secs * 1000));
+			/* ponderhit - update de rootnode */
+			if (engine_rootnode.flags & _WTM) {
+				_fast_dowmove(&engine_rootnode, ui_lastmove);
+			} else {
+				_fast_dobmove(&engine_rootnode, ui_lastmove);
+			}
+
+			/* update game info */
+			engine_records[engine_rootply].maxima_thinking = false;
+			engine_records[engine_rootply].hashcode_after_move = engine_rootnode.hashcode;
+			engine_records[engine_rootply++].move = ui_lastmove;
 					
-		/* resume de thread */ 		       	
-		s_threadstate = THREAD_PONDERSTOPPING; 
-		pthread_cond_signal(cond);
+			/* de reptable updaten met de actually played move */
+			g.reptable [engine_rootnode.fifty] = engine_rootnode.hashcode;
 	
-	    } else { 
-		/* geen ponderhit */ 
-		s_ponderhit = false; 		
-				
-		/* update de engine_rootnode */ 	
-		if (ui_lastmove && (ui_lastmove != engine_lastmove)) { 		 
-										
-		    if (engine_rootnode.flags & _WTM) {			
-			_fast_dowmove(&engine_rootnode, ui_lastmove);				
-		    } else { 		 			 
-			_fast_dobmove(&engine_rootnode, ui_lastmove);
-		    }
-					
-		    /* update game info */ 
-		    engine_records[engine_rootply].maxima_thinking = false; 
-		    engine_records[engine_rootply].hashcode_after_move = engine_rootnode.hashcode; 
-		    engine_records[engine_rootply++].move = ui_lastmove; 
+			/* pas tmax aan */
+			int msecs = g.timer.elapsed ();
+			g.stoptime = g.maxtime = g.tmax - msecs;
 
-		    /* de reptable updaten met de actually played move */ 
-		    g.reptable [engine_rootnode.fifty] = engine_rootnode.hashcode;	
+			/* resume de thread */
+			s_threadstate = THREAD_PONDERSTOPPING;
+			pthread_cond_signal(cond);
+
+	    } else { 
+	    	/* geen ponderhit */
+	    	s_ponderhit = false;
+				
+	    	/* update de engine_rootnode */
+	    	if (ui_lastmove && (ui_lastmove != engine_lastmove)) {
+										
+				if (engine_rootnode.flags & _WTM) {
+					_fast_dowmove(&engine_rootnode, ui_lastmove);
+				} else {
+					_fast_dobmove(&engine_rootnode, ui_lastmove);
+				}
+
+				/* update game info */
+				engine_records[engine_rootply].maxima_thinking = false;
+				engine_records[engine_rootply].hashcode_after_move = engine_rootnode.hashcode;
+				engine_records[engine_rootply++].move = ui_lastmove;
+
+				/* de reptable updaten met de actually played move */
+				g.reptable [engine_rootnode.fifty] = engine_rootnode.hashcode;
+
+			} else {
+				// g_print("* starting with first move\n");
+			}
 					
-		} else { 
-		    // g_print("* starting with first move\n"); 
-		}
-				
-		/* set tmax voor de nieuwe search nadat we de ponderactie gestopt hebben */ 
-		g.maxtime = g.tmax;
-		g.stoptime = g.tmax / 2;
-				
-		g.stopsearch = true;
- 
-		s_threadstate = THREAD_PONDERSTOPPING;  			 		
-		pthread_cond_signal(cond);
+			/* set tmax voor de nieuwe search nadat we de ponderactie gestopt hebben */
+			g.maxtime = g.tmax;
+			g.stoptime = g.tmax / 2;
+					
+			g.stopsearch = true;
+
+			s_threadstate = THREAD_PONDERSTOPPING;
+			pthread_cond_signal(cond);
 				
 	    }
 	    break; 
 	case THREAD_THINKING:
-	    g_error("Illegal THREAD_THINKING state in search();"); 
+	    std::cerr << "Illegal THREAD_THINKING state in search();";
 	    break; 
 	case THREAD_PONDERSTOPPING:
-	    g_error("Illegal THREAD_PONDERSTOPPING state in search();"); 
+	    std::cerr << "Illegal THREAD_PONDERSTOPPING state in search();";
 	    break; 
 	}
     }
     pthread_mutex_unlock(statemutex); 
-
 }
 
 void set_fen(const char* fen)
@@ -388,7 +383,7 @@ void set_fen(const char* fen)
     pthread_mutex_lock(statemutex); 
     {
 	if (s_threadstate != THREAD_STOPPING) { 
-	    g_error("Thread not stopped before newgame in SetFen. state=%d\n",s_threadstate); 
+	    std::cerr << boost::format("Thread not stopped before newgame in SetFen. state=%d\n") % s_threadstate;
 	}
 	s_threadstate = THREAD_PONDERING; 
 	engine_lastmove = 0; 
@@ -405,9 +400,9 @@ void set_fen(const char* fen)
 void game_move_forward(int move)
 {
     if (engine_rootnode.flags & _WTM) { 
-	_fast_dowmove (&engine_rootnode, move);
+    	_fast_dowmove (&engine_rootnode, move);
     } else { 		 
-	_fast_dobmove (&engine_rootnode, move);
+    	_fast_dobmove (&engine_rootnode, move);
     }
 	
     engine_records[engine_rootply].maxima_thinking = false; 
@@ -419,24 +414,25 @@ void game_move_forward(int move)
 
 void signal_handler(int signal) 
 {	
-    if (s_threadstate==THREAD_THINKING || s_ponderhit) { 
-	gdouble secs = g_timer_elapsed (g.timer, NULL);			
-	if ((int) (secs * 1000) >= g.stoptime) {
-	    if (g.iteration < 2 && !g.crisis) { 
-		/* crisis: double the time */
-		std::cout << "engine crisis secs=" << secs << "\n"; 
-		std::cout << "engine crisis before: maxtime=" << g.maxtime << " stoptime=" << g.stoptime << "\n"; 
-		g.crisis = true;
-		g.maxtime = MIN(g.maxtime * 3, (g.timeleft-secs*1000)/2);
-		g.stoptime = g.maxtime;
-		std::cout << "engine crisis after: maxtime=" << g.maxtime << "\n"; 
-		tell_crisis(g.maxtime/1000);
-	    } else {			
-		/* stop the search */
-		g.stopsearch = true;
-	    }
+    if (s_threadstate==THREAD_THINKING) {
+
+		int msecs = g.timer.elapsed ();
+		if (msecs >= g.stoptime) {
+			if (g.iteration < 2 && !g.crisis) {
+				/* crisis: double the time */
+				std::cout << "engine crisis msecs=" << msecs << "\n";
+				std::cout << "engine crisis before: maxtime=" << g.maxtime << " stoptime=" << g.stoptime << "\n";
+				g.crisis = true;
+				g.maxtime = MIN(g.maxtime * 3, (g.timeleft-msecs)/2);
+				g.stoptime = g.maxtime;
+				std::cout << "engine crisis after: maxtime=" << g.maxtime << "\n";
+				tell_crisis(g.maxtime/1000);
+			} else {
+				/* stop the search */
+				g.stopsearch = true;
+			}
 			
-	}
+		}
     }
 }
 
@@ -450,9 +446,9 @@ void init_engine()
     engine_pondermove = -1; 
 
     /* init sync stuff */ 
-    cond = g_new0(pthread_cond_t,1); 
-    statemutex = g_new0(pthread_mutex_t,1); 
-    engine_thread = g_new0(pthread_t,1); 
+    cond = (pthread_cond_t*)malloc(sizeof(pthread_cond_t));
+    statemutex = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t));
+    engine_thread = (pthread_t*)malloc(sizeof(pthread_t));
 
     pthread_mutex_init(statemutex, NULL); 
     pthread_cond_init(cond, NULL); 
@@ -460,13 +456,13 @@ void init_engine()
     /* create worker thread */ 
     pthread_mutex_lock(statemutex); 
     {
-	g.stopsearch = true; 
-	s_threadstate = THREAD_STOPPING; 
+    	g.stopsearch = true;
+    	s_threadstate = THREAD_STOPPING;
 
-	fenton(&engine_rootnode,"rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w kqKQ");		
-	memcpy(&engine_node, &engine_rootnode,sizeof(TFastNode)); 
+    	fenton(&engine_rootnode,"rnbqkbnr/pppppppp/////PPPPPPPP/RNBQKBNR w kqKQ");
+    	memcpy(&engine_node, &engine_rootnode,sizeof(TFastNode));
 
-	pthread_create(engine_thread,NULL,engine_thread_execute,NULL );
+    	pthread_create(engine_thread,NULL,engine_thread_execute,NULL );
     }
     pthread_mutex_unlock(statemutex); 
 

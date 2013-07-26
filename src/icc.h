@@ -20,7 +20,6 @@
 #define ICC_H 
 
 #include <string.h>
-#include <glib.h>
 #include <sys/socket.h> 
 #include <netinet/in.h>
 #include <netdb.h>

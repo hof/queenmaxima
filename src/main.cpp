@@ -28,7 +28,6 @@
 #include "config.h" 
 #include "main.h"
 #include "fast.h"
-#include "relay.h"
 #include "db_pg.h"
 #include "parser.h" 
 #include "w0_search.h" 
@@ -259,9 +258,9 @@ void main_init()
 void Master_Exit()
 {
     g.dbhandle->close(); 
-    g_free (hashtable_0);   
-    g_free (hashtable_1);   
-    g_free (pawn_hashtable);
+    free (hashtable_0);   
+    free (hashtable_1);   
+    free (pawn_hashtable);
 }
 
 void process_xboard_command(std::string& command)
@@ -440,7 +439,7 @@ int main_runtest(int argc, char *argv[])
 {
     std::cout << "fixme: local var in main_runtest\n"; 	
     TFastNode* node = new TFastNode();
-    run_test (node, argv[2], atoi (argv[3]));
+    run_test (node, std::string(argv[2]), atoi (argv[3]));
     delete node;
     return 0; 
 }
@@ -450,28 +449,25 @@ int main_icc(int argc, char *argv[])
     connect_to_ics(MainForm.properties[std::string("-icc-host")].c_str(),
 		   atoi(MainForm.properties[std::string("-icc-port")].c_str()));
 
-    /* connect to the relayer */
-    connect_to_relay("localhost", 6000); 
-    
     while (!MainForm.lost_connection) { 
-	fd_set rfds;
-	fd_set exds; 
+		fd_set rfds;
+		fd_set exds;
 
-	FD_ZERO(&rfds);
-	FD_ZERO(&exds); 
+		FD_ZERO(&rfds);
+		FD_ZERO(&exds);
 
-	FD_SET(MainForm.socket_connection, &rfds); 
-	FD_SET(MainForm.socket_connection, &exds); 
+		FD_SET(MainForm.socket_connection, &rfds);
+		FD_SET(MainForm.socket_connection, &exds);
 
-	int select_res;
-	if ((select_res = select(MainForm.socket_connection+1, &rfds, NULL, NULL, NULL ))) {  
-	    if (select_res == -1) { 
-		continue;
-	    }
-	    if (FD_ISSET(MainForm.socket_connection, &rfds)) { 
-                icc_connection_cb(); 
-	    }
-	}	
+		int select_res;
+		if ((select_res = select(MainForm.socket_connection+1, &rfds, NULL, NULL, NULL ))) {
+			if (select_res == -1) {
+				continue;
+			}
+			if (FD_ISSET(MainForm.socket_connection, &rfds)) {
+					icc_connection_cb();
+			}
+		}
     }
 
     std::cout << "main icc connection lost\n";
@@ -549,7 +545,7 @@ int main_test(int argc, char *argv[])
 
 void display_usage() 
 {
-    std::cout << "maxima chess engine. " << " "__DATE__ << " "__TIME__"\n";
+    std::cout << "maxima chess engine (" << MAXIMA_VERSION << ") "__DATE__ << " "__TIME__"\n";
     std::cout << "Copyright (C) 1996-2013 Erik van het Hof and Hermen Reitsma. All rights reserved.\n" 
 	"\nusage: maxima [options] mode\n\n" 
 	" \n"
@@ -571,15 +567,14 @@ void display_usage()
 	"    -db-database=<database>     database to use\n\n"
 	"                                default=maxima\n"
 	"    -db-save-game=<bool>        save game in database\n"
-	"                                default=true\n"
-	"\nPlease send your comments and suggestions to maxima@queenmaxima.com\n";   
+	"                                default=true\n\n";
 }
 
 int main(int argc, char *argv[])
 {	 
     if (argc<2) {
-	display_usage();
-	return 0; 
+    	display_usage();
+    	return 0;
     }
 
     int ret = 0; 
@@ -589,9 +584,9 @@ int main(int argc, char *argv[])
     MainForm.properties[std::string("-icc-port")] = std::string("5000"); 
     MainForm.properties[std::string("-db-save-game")] = std::string("true");
     MainForm.properties[std::string("-mysql-host")] = std::string("localhost");
-    MainForm.properties[std::string("-mysql-user")] = std::string("queenmaxima");
-    MainForm.properties[std::string("-mysql-password")] = std::string("queenmaxima");
-    MainForm.properties[std::string("-mysql-database")] = std::string("queenmaxima"); 
+    MainForm.properties[std::string("-mysql-user")] = std::string("maxima");
+    MainForm.properties[std::string("-mysql-password")] = std::string("maxima");
+    MainForm.properties[std::string("-mysql-database")] = std::string("maxima");
 
     for (int i=1; i<argc-1; i++) {
 	std::string param = argv[i]; 
@@ -613,14 +608,16 @@ int main(int argc, char *argv[])
 
     // commandline parsing 
     if (!strcmp(argv[argc-1],"xboard")) { 
-	ret = main_xboard(argc,argv); 
+    	ret = main_xboard(argc,argv);
     } else if (!strcmp(argv[argc-1],"icc")) { 
-	ret = main_icc(argc,argv); 
+    	ret = main_icc(argc,argv);
     } else if (!strcmp(argv[argc-1],"runtest")) {
-	ret = main_runtest(argc,argv); 
+    	ret = main_runtest(argc,argv);
     } else { 	
-	display_usage(); 
+    	display_usage();
     }
+
+    std::cout << "called elapsed: " << g.timer.elapsed() << std::endl;
 
     Master_Exit(); 
 	

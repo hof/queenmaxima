@@ -35,11 +35,11 @@ sub check_core
 			 $time[5]+1900, $time[4]+1, $time[3], $time[2], $time[1]);
 
       open(SENDMAIL,"|/usr/lib/sendmail -t");
-      print SENDMAIL "From: maxima\@queenmaxima.com\n";
-      print SENDMAIL "To: maxima\@queenmaxima.com\n";
-      print SENDMAIL "Subject: [queenmaxima] Core dumped and offline\n";
+      print SENDMAIL "From: maxima\@hofcom.org\n";
+      print SENDMAIL "To: maxima\@hofcom.org\n";
+      print SENDMAIL "Subject: [maxima] Core dumped and offline\n";
       print SENDMAIL "\n";
-      print SENDMAIL "QueenMaxima dumped core at: $timestr\n";
+      print SENDMAIL "Maxima dumped core at: $timestr\n";
       print SENDMAIL "\ncore file and maxima with time prefix copied to dump directory\n"; 
       print SENDMAIL "\noutput of: gdb -batch -x gdbc src/maxima core\n"; 
       print SENDMAIL "\n";
@@ -105,7 +105,7 @@ while (1==1) {
 check_core();
 if (check_process('timestamp')==0) {
   print "$0: Starting timestamp\n";
-  open(LOGFILE,">> QueenMaxima.log"); 
+  open(LOGFILE,">> maxima.log"); 
   print LOGFILE scalar(localtime) . " timestamp started.\n";
   close(LOGFILE); 
   system("/usr/bin/schroot -c i386 -- /home/hof/timestamp_linux_2.6.8 207.99.83.228 5000 -p 5000 >/dev/null </dev/null &");
@@ -113,11 +113,12 @@ if (check_process('timestamp')==0) {
 
 if (check_process('maxima')==0) {
   print "$0: starting maxima\n";
-  open (LOGFILE, ">> QueenMaxima.log");
+  open (LOGFILE, ">> maxima.log");
   print LOGFILE scalar(localtime) . " maxima started.\n";
   close(LOGFILE); 
-  system("./src/maxima -icc-host=localhost -icc-user=QueenMaxima -icc-password=password -db-host=localhost -db-user=queenmaxima -db-password=password -db-database=queenmaxima icc");
+  system("./src/maxima -icc-host=localhost -icc-user=QueenMaxima -icc-password=password -db-host=localhost -db-user=maxima -db-password=password -db-database=maxima icc");
 }
 print "$0: waiting for restart\n";
 sleep(30);
 }
+

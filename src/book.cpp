@@ -144,7 +144,7 @@ void learning_book_update_score (int winner_first_ply, int endply, int score, in
 
 bool database_lookup_learn(_int64 hashcode, int &bookscore, int &book_avoid, int min_score, int min_nodes, int wildnumber)  
 {
-    return FALSE; 
+    return false;
 //	int score=0, winscore=0, lossscore=0, nodes=0;
 //	char avoid = 0;
 //	
@@ -193,11 +193,9 @@ void learn_avoid (int maxima_firstply, int lastply, bool max_won, int wildnumber
 			int winscore=0, lossscore=0, nodes=0; 
 			char avoid=0; 
 
-			g_print ("avoid learning; move = ");
-                	print_move (engine_records[n].move);
-                	g_print ("\n");
-
-
+			std::cout << "avoid learning; move = ";
+			print_move (engine_records[n].move);
+            std::cout << "\n";
 
 			if (g.dbhandle->learn_inbook(engine_records[n].hashcode_after_move, wildnumber)) { 
 				g.dbhandle->learn_retrieve(engine_records[n].hashcode_after_move, winscore, lossscore,nodes, avoid, wildnumber);

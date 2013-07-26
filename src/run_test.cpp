@@ -28,7 +28,7 @@
 int WAC[]   = {2, 55, 71, 100, 141, 163, 176, 180, 196, 210, 229, 235, 237, 241, 243, 247, 248, 265, 270, 999};
 int BWTC[]  = {87, 999999};
 
-void run_test (TFastNode* node, char *test, int tmax) 
+void run_test (TFastNode* node, std::string test, int tmax)
 {
     /*
 	std::string fen; 

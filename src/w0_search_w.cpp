@@ -122,8 +122,8 @@ int iterate (TFastNode *node)
                   break;
             }
 			g.rootscore = value;
-			elapsed = (int) g_timer_elapsed (g.timer, NULL);
-                                print_iteration (elapsed);                      
+			elapsed = g.timer.elapsed();
+			print_iteration (elapsed);
 			g.iteration++;
 			if (node->wpieces+node->bpieces>3 && elapsed * 2000 > g.stoptime) { 
 				break;
@@ -155,10 +155,10 @@ int iterate (TFastNode *node)
 		{						
 			value = rootdrive_b (node, value, depth, last);
 			if (g.stopsearch /*|| MATE_VALUE (value)*/ ) { /* fixme */
-                                break;
-                        }
+				break;
+			}
 			g.rootscore = value;
-			elapsed = (int) g_timer_elapsed (g.timer, NULL);		
+			elapsed = g.timer.elapsed();
 			print_iteration (elapsed);			
 			g.iteration++;	
 			if (node->wpieces+node->bpieces>3 && elapsed * 2000 > g.stoptime) {

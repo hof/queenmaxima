@@ -61,7 +61,7 @@ bool _fast_moveokw (TFastNode* node, int move)  // returns "move would be genera
 			return node -> matrix [ssq] == PAWN && node -> matrix [tsq] == 0;
 		}
 	}
-	g_assert_not_reached ();
+	BOOST_ASSERT (false);
 	return false;
 }
 
@@ -101,7 +101,7 @@ bool _fast_moveokb(TFastNode* node, int move) { // returns "move would be genera
 			return (node -> matrix [ssq] == BPAWN) && (node -> matrix [tsq] == 0);
 		}
 	}
-	g_assert_not_reached ();
+	BOOST_ASSERT (false);
 	return false;
 }
 
@@ -172,7 +172,7 @@ bool legal_move_w (TFastNode* node, int move) // returns "white move is legal in
 			}
 			sq = t.sqonline [node -> wkpos] [SOURCESQ (move)];
 			while (sq != node -> wkpos) {
-				g_assert (sq >= 0 && sq <= 63);
+				BOOST_ASSERT (sq >= 0 && sq <= 63);
 				piece = node -> matrix [sq];
 				if (piece) {			       
 					return piece < BBISHOP || ! t.pieceattacks [piece - KING] [sq] [node->wkpos];
@@ -192,7 +192,7 @@ bool legal_move_w (TFastNode* node, int move) // returns "white move is legal in
 		}	
 		sq = t.sqonline [node -> wkpos] [SOURCESQ (move)];
 		while (sq != node -> wkpos) {			
-			g_assert (sq >= 0 && sq <= 63);
+			BOOST_ASSERT (sq >= 0 && sq <= 63);
 			piece = node -> matrix [sq];
 			if (piece && (sq != csq)) {
 				return piece < BROOK || ! t.pieceattacks [piece - KING] [sq] [node -> wkpos];
@@ -248,7 +248,7 @@ bool legal_move_b (TFastNode* node, int move) // returns "black move is legal in
 
 			sq = t.sqonline [node -> bkpos] [SOURCESQ (move)];		
 			while (sq != node -> bkpos) {				
-				g_assert (sq >= 0 && sq <= 63);
+				BOOST_ASSERT (sq >= 0 && sq <= 63);
 				piece = node -> matrix [sq];
 				if (piece) {			       
 					return piece > QUEEN ||  piece < BISHOP || ! t.pieceattacks [piece] [sq] [node->bkpos];
@@ -267,7 +267,7 @@ bool legal_move_b (TFastNode* node, int move) // returns "black move is legal in
 		}	
 		sq = t.sqonline [node -> bkpos] [ SOURCESQ (move)];
 		while (sq != node -> bkpos) {
-			g_assert (sq >= 0 && sq <= 63);
+			BOOST_ASSERT (sq >= 0 && sq <= 63);
 			piece = node -> matrix [sq];
 			if (piece && sq != csq) {
 				return piece > QUEEN || piece < ROOK || ! t.pieceattacks [piece] [sq] [node -> bkpos];
@@ -345,7 +345,7 @@ int _fast_inspectnode (TFastNode* node) {
 		hashcode ^= hashnumbers [PAWN - 1] [sq];
 		pawncode ^= hashnumbers [PAWN - 1] [sq];
 		if (node->index [sq] != i) {
-			g_print("node->index[%d] = %d ; i = %d\n",sq,node->index[sq],i); 
+			std::cout << boost::format("node->index[%d] = %d ; i = %d\n") % sq % node->index[sq] % i;
 			return 21;
 		}			
 		matrix [sq] = PAWN;
@@ -487,17 +487,17 @@ int _fast_inspectnode (TFastNode* node) {
 	} else {
 		hashcode &= _LL(0xFFFFFFFFFFFFFFFE);
 	}
-        if (hashcode != node -> hashcode) {
-		g_print("hashcode = %Ld, node -> hashcode = %Ld\n", hashcode, node -> hashcode);
+	if (hashcode != node -> hashcode) {
+		std::cout << boost::format("hashcode = %Ld, node -> hashcode = %Ld\n") % hashcode % node -> hashcode;
 		return 200;
 	}
 
 	if (pawncode != node -> pawncode) {
-		g_print("pawncode = %Ld, node -> pawncode = %Ld\n", pawncode, node -> pawncode);
+		std::cout << boost::format("pawncode = %Ld, node -> pawncode = %Ld\n") % pawncode % node -> pawncode;
 		return 201;
 	}
 
-//	if (_result_value < -INFINITY || _result_value > INFINITY) {
+//	if (_result_value < -CHESS_INF || _result_value > CHESS_INF) {
 //		return 300;
 //	}
         

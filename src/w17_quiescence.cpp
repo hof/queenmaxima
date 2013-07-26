@@ -90,9 +90,9 @@ int w17_quiescence_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 #ifdef DEBUG_INSPECT	
 	int error = _fast_inspectnode (node);
 	if (error || attacked_by_PNBRQK (node, node -> bkpos) || attacked_by_pnbrqk (node, node->wkpos)) {
-		g_print ("error %d detected in w17_quiescence_w \n", error);
+		std::cerr << boost::format("error %d detected in w17_quiescence_w \n") % error;
 		print_path (ply);
-		g_error ("DEBUG_INSPECT error\n"); 	 
+		std::cerr << "DEBUG_INSPECT error\n";
 		return INVALID;
 	}	
 #endif	
@@ -138,7 +138,7 @@ int w17_quiescence_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 	
 	legals = 0;
 	flags = node -> flags;
-	best = - INFINITY;
+	best = - CHESS_INF;
 	first = ply << 7;
 	
 	g.reptable [g.repindex + ply] = node -> hashcode;
@@ -323,7 +323,7 @@ int w17_quiescence_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 	while (last > first) {		
 		move = w17_select_noncapture_w (node, first, last, w17_eval_state(node));
 
-		g_assert (move != hashmove);
+		BOOST_ASSERT (move != hashmove);
 
 		if (! legal_move_w (node, move)) {
 			continue;
@@ -448,7 +448,7 @@ int w17_quiescence_b (TFastNode* node, int alpha, int beta, int ply, int depth) 
 	
 	legals = 0;
 	flags = node -> flags;
-	best = - INFINITY;
+	best = - CHESS_INF;
 	first = ply << 7;
 
 	g.reptable [g.repindex + ply] = node -> hashcode;
@@ -628,12 +628,11 @@ int w17_quiescence_b (TFastNode* node, int alpha, int beta, int ply, int depth) 
 			}
 		}
 	}
-
 	
 	while (last > first) {
 		move = w17_select_noncapture_b (node, first, last, w17_eval_state(node));
 
-		g_assert (move != hashmove); 
+		BOOST_ASSERT (move != hashmove);
 
 		if (! legal_move_b (node, move)) {
 			continue;
@@ -711,9 +710,9 @@ int w17_quiescence_evade_w (TFastNode* node, int alpha, int beta, int ply, int d
 #ifdef DEBUG_INSPECT	
 	int error = _fast_inspectnode (node);
 	if (error ||  !attacked_by_pnbrqk (node, node->wkpos) || attacked_by_PNBRQK (node, node->bkpos)) {
-		g_print ("error %d detected in w17_quiescence_evade_w\n", error);
+		std::cerr << boost::format("error %d detected in w17_quiescence_evade_w\n") % error;
 		print_path (ply);
-		g_error ("DEBUG_INSPECT error\n"); 
+		std::cerr << ("DEBUG_INSPECT error\n");
 		return INVALID;
 	}
 #endif
@@ -759,7 +758,7 @@ int w17_quiescence_evade_w (TFastNode* node, int alpha, int beta, int ply, int d
 
 	legals = 0;
 	flags = node -> flags;
-	best = - INFINITY;
+	best = - CHESS_INF;
 	first = ply << 7;
 
 	g.reptable [g.repindex + ply] = node -> hashcode;
@@ -964,7 +963,7 @@ int w17_quiescence_evade_b (TFastNode* node, int alpha, int beta, int ply, int d
 
 	legals = 0;
 	flags = node -> flags;
-	best = - INFINITY;
+	best = - CHESS_INF;
 	first = ply << 7;
 	
 	g.reptable [g.repindex + ply] = node -> hashcode;
@@ -1089,7 +1088,7 @@ int w17_quiescence_evade_b (TFastNode* node, int alpha, int beta, int ply, int d
 				alpha = value;
 
 				/* qpv_update */
-                                update_pv(node, move, ply);
+				update_pv(node, move, ply);
 			}
 			hashmove = move;
 			best = value;

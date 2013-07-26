@@ -140,8 +140,8 @@ int w17_root_drive_w (TFastNode * node, int value, int depth, int last)
 		beta;
 //		delta = 10;
 
-		alpha = -INFINITY;
-		beta = +INFINITY; 
+		alpha = -CHESS_INF;
+		beta = +CHESS_INF;
 
 	do {		
 //		alpha = value - delta;
@@ -154,9 +154,9 @@ int w17_root_drive_w (TFastNode * node, int value, int depth, int last)
 			return INVALID;
 		}
 		if (value <= alpha) {
-			g_warning ("value <= alpha\n");
+			std::cerr << "value <= alpha\n";
 		} else {
-			g_warning ("value >= beta\n");
+			std::cerr << "value >= beta\n";
 		}		
 		//		delta += delta;
 	} while (true);
@@ -169,8 +169,8 @@ int w17_root_drive_b (TFastNode * node, int value, int depth, int last)
 		beta;
 //		delta = 10;
 
-		alpha = -INFINITY; 
-		beta = +INFINITY; 
+		alpha = -CHESS_INF;
+		beta = +CHESS_INF;
 
 	do {		
 //		alpha = value - delta;
@@ -183,9 +183,9 @@ int w17_root_drive_b (TFastNode * node, int value, int depth, int last)
 			return INVALID;
 		}
 		if (value <= alpha) {
-			g_warning ("value <= alpha\n");
+			std::cerr << "value <= alpha\n";
 		} else {
-			g_warning ("value >= beta\n");
+			std::cerr << "value >= beta\n";
 		}	
 //		delta += delta;
 	} while (true);
@@ -204,7 +204,7 @@ int w17_iterate (TFastNode *node)
 
 	/* w17 win by losing everything */ 
 	if ((!node->wpawns && !node->wpieces) || (!node->bpawns && !node->bpieces)) { 
-		g_print("returning w17_iterate because of 1 side no pawns and pieces\n"); 
+		std::cout << ("returning w17_iterate because of 1 side no pawns and pieces\n");
 		return 0; 
 	}
 
@@ -238,7 +238,7 @@ int w17_iterate (TFastNode *node)
                     for (int depth = 10; depth < 50 * FULL_PLY; depth += FULL_PLY)
                     {
                         do {
-                            //value = w17_pvs_root_w (node, -INFINITY, INFINITY, depth, last);
+                            //value = w17_pvs_root_w (node, -CHESS_INF, CHESS_INF, depth, last);
                             value = w17_root_drive_w (node, value, depth, last);
                             //g_print("value=%d g.fastnodes=%d\n",value,g.fastnodes);
 
@@ -280,7 +280,7 @@ int w17_iterate (TFastNode *node)
                             break;
                         }
 				
-                        g_assert (value > - INFINITY && value < INFINITY);
+                        BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
                         g.iteration++;
                     }
 		} else { 
@@ -320,7 +320,7 @@ int w17_iterate (TFastNode *node)
 			value = 0;
 			for (int depth = 10; depth < 50 * FULL_PLY; depth += FULL_PLY) {			
 				do {
-					//value = w17_pvs_root_b (node, -INFINITY, INFINITY, depth, last);
+					//value = w17_pvs_root_b (node, -CHESS_INF, CHESS_INF, depth, last);
 					value = w17_root_drive_b (node, value, depth, last);
 					if (g.stopsearch) {
 						break;
@@ -353,7 +353,7 @@ int w17_iterate (TFastNode *node)
 				if (g.stopsearch || g.crisis) {
 					break;
 				}
-				g_assert (value > - INFINITY && value < INFINITY);
+				BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 												
 				g.iteration++;
 				
@@ -403,7 +403,7 @@ int w17_newdepth_silent_b (TFastNode* node, int move, int ply, int depth)
 }
 
 int w17_pvs_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
-	int best = -INFINITY,
+	int best = -CHESS_INF,
 		bestmove = 0,
 		hashmove,
 		move = 0, // fixme: why does it give warnings if move is unitialized??
@@ -450,13 +450,13 @@ int w17_pvs_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 		return 0;
 	}
 
-	g_assert( depth >= FULL_PLY ); 
+	BOOST_ASSERT( depth >= FULL_PLY );
 		        					
 	// hash.
 	if (!inhash (node)) {
 		hashmove = 0;
 	} else if (hashhit (node, depth, ply, value, hashmove, alpha, beta)) {
-		g_assert (value > - INFINITY && value < INFINITY);
+		BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 		print_search (node, alpha, beta, hashmove, ply, value, _PS_HASH, _PS_PVS_B); 
 		return value;		
 	}	
@@ -508,7 +508,7 @@ int w17_pvs_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 
 					if (value > alpha) {
 						if (value >= beta) {
-							g_assert (value > - INFINITY && value < INFINITY);
+							BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 							print_search (node, alpha, beta, move, ply, value, _PS_CUT, _PS_PVS_B);		
 							return value;
 						}
@@ -517,14 +517,14 @@ int w17_pvs_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 
 					}					
 
-					g_assert (value > - INFINITY && value < INFINITY);
+					BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 					print_search (node, alpha, beta, move, ply, value, _PS_NORMAL, _PS_PVS_B); 
 
 #ifdef DEBUG_INSPECT
 	                                if (debuglegals != legals) {		 
 						g_print ("hash = %d, nodes = %d, debuglegals = %d, legals = %d, hashmove = %d\n", (int) node -> hashcode,  g.fastnodes, debuglegals, legals, hashmove);
 						print_path (ply);
-						g_assert_not_reached ();
+						BOOST_ASSERT_not_reached ();
 					}
 #endif
 					return value;						
@@ -561,11 +561,11 @@ int w17_pvs_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 						print_search (node, alpha, beta, 0, ply, INVALID, _PS_TIME, _PS_PVS_B); 
 						return INVALID;
 					}
-					g_assert (best > - INFINITY && best < INFINITY);
+					BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 					if (best > alpha) {
 						if (best >= beta) {
 							hash_store (node, depth, ply, best, hashmove, g.fastnodes - nodes, lower_bound);
-							g_assert (best > - INFINITY && best < INFINITY);
+							BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 							print_search (node, alpha, beta, hashmove, ply, best, _PS_CUT, _PS_PVS_B);
 							g.cutoffs_b [legals]++; 
 						       	return best;
@@ -594,7 +594,7 @@ int w17_pvs_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 
 					move = w17_select_capture_b (node, first, last); // fixme: ook proberen zonder deze sortering
 				
-					g_assert( legals <= 128); 
+					BOOST_ASSERT( legals <= 128);
 	
 #ifdef DEBUG_LEGALITY
 					if (legal_move_b (node, move) != inspect_move_legality_b (node, move)) {
@@ -625,14 +625,14 @@ int w17_pvs_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 						print_search (node, alpha, beta, 0, ply, value, _PS_TIME, _PS_PVS_B); 
 						return INVALID;
 					}
-					g_assert (value > - INFINITY && value < INFINITY);
+					BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 					legals++;
 					
 					if (value > best) {
 						if (value > alpha) {
 							if (value >= beta) {
 								hash_store (node, depth, ply, value, move, g.fastnodes - nodes, lower_bound);
-								g_assert (value > - INFINITY && value < INFINITY);
+								BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 								print_search (node, alpha, beta, move, ply, value, _PS_CUT, _PS_PVS_B);
 								g.cutoffs_b [legals] ++; 
 								return value;
@@ -657,7 +657,7 @@ int w17_pvs_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 					}
 #endif
  
-					g_assert (best > - INFINITY && best < INFINITY);
+					BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 					print_search (node, alpha, beta, bestmove, ply, best, _PS_NORMAL, _PS_PVS_B); 
 					return best;
 				}
@@ -681,12 +681,12 @@ int w17_pvs_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 			print_search (node, alpha, beta, 0, ply, best, _PS_TIME, _PS_PVS_B); 
 			return INVALID;
 		}	
-		g_assert (best > - INFINITY && best < INFINITY);	
+		BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 
 		if (best > alpha) {		       
 			if (best >= beta) {
 				hash_store (node, depth, ply, best, hashmove, g.fastnodes - nodes, lower_bound);
-				g_assert (best > - INFINITY && best < INFINITY);
+				BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 				print_search (node, alpha, beta, move, ply, best, _PS_CUT, _PS_PVS_B); 
 				g.cutoffs_b [legals] ++; 
 				return best;
@@ -707,7 +707,7 @@ int w17_pvs_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 	int debuglegals = count_legals_b (node, first, last);
 #endif
 
-	g_assert(first + 128 > last); 
+	BOOST_ASSERT(first + 128 > last);
 
 	if (legals) { //haal reeds onderzochte legale zetten uit de lijst		
 		index = first;
@@ -753,14 +753,14 @@ int w17_pvs_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 			print_search (node, alpha, beta, 0, ply, INVALID, _PS_TIME, _PS_PVS_B); 
 			return INVALID;
 		}		
-		g_assert (value > - INFINITY && value < INFINITY);
+		BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 		legals++;
 		
 		if (value > best) {
 			if (value > alpha) {
 				if (value >= beta) {
 					hash_store (node, depth, ply, value, move, g.fastnodes - nodes, lower_bound);
-					g_assert (value > - INFINITY && value < INFINITY);
+					BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 					print_search (node, alpha, beta, move, ply, value, _PS_CUT, _PS_PVS_B); 
 					g.cutoffs_b [legals] ++; 
 					return value;
@@ -791,14 +791,14 @@ int w17_pvs_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 	}
 
        	hash_store (node, depth, ply, best, bestmove, g.fastnodes - nodes, hflags);
-	g_assert (best > - INFINITY && best < INFINITY);
+	BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 	print_search (node, alpha, beta, bestmove, ply, best, _PS_NORMAL, _PS_PVS_B); 
 	return best; 
 }
 
 int w17_pvs_w (TFastNode* node, int alpha, int beta, int ply, int depth) 
 {
-	int best = -INFINITY,
+	int best = -CHESS_INF,
 		bestmove = 0,
 		move = 0, //fixme: why initialize?
 		flags = node->flags,
@@ -845,13 +845,13 @@ int w17_pvs_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 		return 0;
 	}
 
-	g_assert(depth >= FULL_PLY); 
+	BOOST_ASSERT(depth >= FULL_PLY);
 				
 	// hash.
 	if (!inhash (node)) {
 		hashmove = 0;
 	} else if (hashhit (node, depth, ply, value, hashmove, alpha, beta)) {
-		g_assert (value > - INFINITY && value < INFINITY);
+		BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 		print_search (node, alpha, beta, hashmove, ply, value, _PS_HASH, _PS_PVS_W); 
 		return value;		
 	}	
@@ -901,7 +901,7 @@ int w17_pvs_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 
 					if (value > alpha) {
 						if (value >= beta) {
-							g_assert (value > - INFINITY && value < INFINITY);
+							BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 							print_search (node, alpha, beta, move, ply, value, _PS_CUT, _PS_PVS_W); 
 							return value;
 						}					
@@ -909,7 +909,7 @@ int w17_pvs_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 						update_pv (node, move, ply); 
 					}
 										
-					g_assert (value > - INFINITY && value < INFINITY);
+					BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 					print_search (node, alpha, beta, move, ply, value, _PS_NORMAL, _PS_PVS_W);  
 
 #ifdef DEBUG_INSPECT
@@ -955,11 +955,11 @@ int w17_pvs_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 						print_search (node, alpha, beta, 0, ply, INVALID, _PS_TIME, _PS_PVS_W); 
 						return INVALID;
 					}
-					g_assert (best > - INFINITY && best < INFINITY);
+					BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 					if (best > alpha) {
 						if (best >= beta) {
 							hash_store (node, depth, ply, best, hashmove, g.fastnodes - nodes, lower_bound);
-							g_assert (best > - INFINITY && best < INFINITY);
+							BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 							print_search (node, alpha, beta, hashmove, ply, best, _PS_CUT, _PS_PVS_W);
 							g.cutoffs_w [legals] ++; 
 						       	return best;
@@ -987,7 +987,7 @@ int w17_pvs_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 				
 					move = w17_select_capture_w (node, first, last); // fixme: ook proberen zonder deze sortering
 	
-					g_assert(legals <= 128); 
+					BOOST_ASSERT(legals <= 128);
 
 					
 #ifdef DEBUG_LEGALITY
@@ -1019,14 +1019,14 @@ int w17_pvs_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 						print_search (node, alpha, beta, 0, ply, value, _PS_TIME, _PS_PVS_W); 
 						return INVALID;
 					}
-					g_assert (value > - INFINITY && value < INFINITY);					
+					BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 					legals++;
 					
 					if (value > best) {
 						if (value > alpha) {
 							if (value >= beta) {
 								hash_store (node, depth, ply, value, move, g.fastnodes - nodes, lower_bound);
-								g_assert (value > - INFINITY && value < INFINITY);
+								BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 								print_search (node, alpha, beta, move, ply, value, _PS_CUT, _PS_PVS_W);
 								g.cutoffs_w [legals] ++; 
 								return value;
@@ -1051,7 +1051,7 @@ int w17_pvs_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 					}
 #endif
 
-					g_assert (best > - INFINITY && best < INFINITY);
+					BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 					print_search (node, alpha, beta, bestmove, ply, best, _PS_NORMAL, _PS_PVS_W); 
 					return best;
 				}
@@ -1075,12 +1075,12 @@ int w17_pvs_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 			print_search (node, alpha, beta, 0, ply, best, _PS_TIME, _PS_PVS_W); 
 			return INVALID;
 		}	
-		g_assert (best > - INFINITY && best < INFINITY);	
+		BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 
 		if (best > alpha) {		       
 			if (best >= beta) {
 				hash_store (node, depth, ply, best, hashmove, g.fastnodes - nodes, lower_bound);
-				g_assert (best > - INFINITY && best < INFINITY);
+				BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 				print_search (node, alpha, beta, move, ply, best, _PS_CUT, _PS_PVS_W); 
 				g.cutoffs_w [legals] ++; 
 				return best;
@@ -1102,7 +1102,7 @@ int w17_pvs_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 	int debuglegals = count_legals_w (node, first, last);
 #endif
 
-	g_assert(first + 128 > last); 
+	BOOST_ASSERT(first + 128 > last);
 
 	if (legals) { //haal reeds onderzochte legale zetten uit de lijst		
 		index = first;
@@ -1150,14 +1150,14 @@ int w17_pvs_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 			print_search (node, alpha, beta, 0, ply, INVALID, _PS_TIME, _PS_PVS_W); 
 			return INVALID;
 		}
-		g_assert (value > - INFINITY && value < INFINITY);		
+		BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 		legals++;
 		
 		if (value > best) {
 			if (value > alpha) {
 				if (value >= beta) {
 					hash_store (node, depth, ply, value, move, g.fastnodes - nodes, lower_bound);	      
-					g_assert (value > - INFINITY && value < INFINITY);
+					BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 					print_search (node, alpha, beta, move, ply, value, _PS_CUT, _PS_PVS_W); 
 					g.cutoffs_w [legals] ++; 
 					return value;
@@ -1188,7 +1188,7 @@ int w17_pvs_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 	}
 
 	hash_store (node, depth, ply, best, bestmove, g.fastnodes - nodes, hflags);	
-	g_assert (best > - INFINITY && best < INFINITY);
+	BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 	print_search (node, alpha, beta, bestmove, ply, best, _PS_NORMAL, _PS_PVS_W); 
 	return best; 
 }
@@ -1282,12 +1282,12 @@ int w17_pvs_root_w (TFastNode* node, int alpha, int beta, int depth, int last)
 		alpha = best;				
 		if (MATE_VALUE (best)) {
 			found_mate_w (node);			
-			g_assert (best > - INFINITY && best < INFINITY);			
+			BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 			return best;
 		}		
 	}
 		
-	g_assert (best > - INFINITY && best < INFINITY);
+	BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 
 	// search remaining sucsessors with closed window (-alpha - 1, -alpha). 
 	// research if value outside window.
@@ -1336,7 +1336,7 @@ int w17_pvs_root_w (TFastNode* node, int alpha, int beta, int depth, int last)
 			value = g.rootmoves [i]. matevalue;
 		}
 		
-		g_assert (value > - INFINITY && value < INFINITY);
+		BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 				
 		if (value > best) {
 			root_new_best (node, i, value); 
@@ -1347,13 +1347,13 @@ int w17_pvs_root_w (TFastNode* node, int alpha, int beta, int depth, int last)
 			
 			if (MATE_VALUE (value)) {				
 				found_mate_w (node);				
-				g_assert (best > - INFINITY && best < INFINITY);
+				BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 				return best;
 			}
 		}
 	} 
 
-	g_assert (best > - INFINITY && best < INFINITY);
+	BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 	return best;  
 }
 
@@ -1421,12 +1421,12 @@ int w17_pvs_root_b (TFastNode* node, int alpha, int beta, int depth, int last)
 		alpha = best;		
 		if (MATE_VALUE (best)) {
 			found_mate_b (node);
-			g_assert (best > - INFINITY && best < INFINITY);
+			BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 			return best;
 		}
 	}
 		
-	g_assert (best > - INFINITY && best < INFINITY);
+	BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 	
 	// search remaining sucsessors with closed window (-alpha - 1, -alpha). 
 	// research if value outside window.
@@ -1474,7 +1474,7 @@ int w17_pvs_root_b (TFastNode* node, int alpha, int beta, int depth, int last)
 			value = g.rootmoves [i]. matevalue;
 		}
 
-		g_assert (value > - INFINITY && value < INFINITY);
+		BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 				
 		if (value > best) {
 			best = value;
@@ -1484,17 +1484,17 @@ int w17_pvs_root_b (TFastNode* node, int alpha, int beta, int depth, int last)
 			}
 			if (MATE_VALUE (value)) {
 				found_mate_b (node);
-				g_assert (best > - INFINITY && best < INFINITY);
+				BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 				return best;
 			}
 		}
 	} 
-	g_assert (best > - INFINITY && best < INFINITY);
+	BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 	return best;  
 }
 
 int w17_pvs_evade_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
-	int best = -INFINITY,
+	int best = -CHESS_INF,
 		move,
 		hashmove,
 		flags = node->flags,
@@ -1545,7 +1545,7 @@ int w17_pvs_evade_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 	if (!inhash (node)) {
 		hashmove = 0;
 	} else if (hashhit (node, depth, ply, value, hashmove, alpha, beta)) {
-		g_assert (value > - INFINITY && value < INFINITY);
+		BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 		print_search (node, alpha, beta, hashmove, ply, value, _PS_HASH, _PS_PVS_E_B);
 		return value;		
 	}	
@@ -1588,7 +1588,7 @@ int w17_pvs_evade_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 
 					if (value > alpha) {
 						if (value >= beta) {
-							g_assert (value > - INFINITY && value < INFINITY);		
+							BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 							print_search (node, alpha, beta, move, ply, value, _PS_CUT, _PS_PVS_E_B);
 							return value;
 						}
@@ -1596,7 +1596,7 @@ int w17_pvs_evade_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 						update_pv (node, move, ply); 
 					}
 
-					g_assert (value > - INFINITY && value < INFINITY);
+					BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 					print_search(node, alpha, beta, move, ply, value, _PS_NORMAL, _PS_PVS_E_B); 
 
 #ifdef DEBUG_INSPECT
@@ -1622,7 +1622,7 @@ int w17_pvs_evade_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 
 				move = w17_select_capture_b (node, first, last); // fixme: ook proberen zonder deze sortering
 
-				g_assert( legals <= 128 ); 
+				BOOST_ASSERT( legals <= 128 );
 								 
 				if (! legal_move_b (node, move)) {				
 					continue;
@@ -1641,13 +1641,13 @@ int w17_pvs_evade_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 					if (g.stopsearch) { 
 						return INVALID;
 					}
-					g_assert (value > - INFINITY && value < INFINITY);
+					BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 					legals++;
 					
 					if (value > best) {
 						if (value > alpha) {
 							if (value >= beta) {
-								g_assert (value > - INFINITY && value < INFINITY);
+								BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 								hash_store (node, depth, ply, value, move, g.fastnodes - nodes, lower_bound);
 								print_search( node, alpha, beta, move, ply, value, _PS_CUT, _PS_PVS_E_B); 
 								g.cutoffs_b [legals] ++; 
@@ -1675,7 +1675,7 @@ int w17_pvs_evade_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 					g_assert_not_reached ();
 				}
 #endif
-				g_assert (best > - INFINITY && best < INFINITY);
+				BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 				print_search( node, alpha, beta, hashmove, ply, best, _PS_NORMAL, _PS_PVS_E_B);
 				return best;
 			}
@@ -1697,7 +1697,7 @@ int w17_pvs_evade_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 	debuglegals = count_legals_b (node, first, last);
 #endif
 	
-	g_assert(first + 128 > last); 
+	BOOST_ASSERT(first + 128 > last);
 
 		
 	while (last > first) { 
@@ -1721,13 +1721,13 @@ int w17_pvs_evade_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 			if (g.stopsearch) { 
 				return INVALID;
 			}		
-			g_assert (value > - INFINITY && value < INFINITY);
+			BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 			legals++;
 			
 			if (value > best) {
 				if (value > alpha) {
 					if (value >= beta) {
-						g_assert (value > - INFINITY && value < INFINITY);
+						BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 						hash_store (node, depth, ply, value, move, g.fastnodes - nodes, lower_bound);
 						print_search( node, alpha, beta, move, ply, value, _PS_CUT, _PS_PVS_E_B); 
 						g.cutoffs_b [legals] ++; 
@@ -1760,7 +1760,7 @@ int w17_pvs_evade_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 		print_search (node, alpha, beta, 0, ply, MATE-ply, _PS_TRIVIAL, _PS_PVS_E_B); 
 		return MATE-ply; 
 	}
-	g_assert (best > - INFINITY && best < INFINITY);
+	BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 	hash_store (node, depth, ply, best, hashmove, g.fastnodes - nodes, hflags);
 	print_search (node, alpha, beta, hashmove, ply, best, _PS_NORMAL, _PS_PVS_E_B); 
 	return best; 
@@ -1768,7 +1768,7 @@ int w17_pvs_evade_b (TFastNode* node, int alpha, int beta, int ply, int depth) {
 
 int w17_pvs_evade_w (TFastNode* node, int alpha, int beta, int ply, int depth) 
 {
-	int best = -INFINITY,
+	int best = -CHESS_INF,
 		hflags,
 		hashmove,
 		nodes,
@@ -1819,7 +1819,7 @@ int w17_pvs_evade_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 	if (!inhash (node)) {
 		hashmove = 0;
 	} else if (hashhit (node, depth, ply, value, hashmove, alpha, beta)) {
-		g_assert (value > - INFINITY && value < INFINITY);
+		BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 		print_search (node, alpha, beta, hashmove, ply, value, _PS_HASH, _PS_PVS_E_W); 
 		return value;		
 	}		
@@ -1859,14 +1859,14 @@ int w17_pvs_evade_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 
 					if (value > alpha) {
 						if (value >= beta) {
-							g_assert (value > - INFINITY && value < INFINITY);
+							BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 						  	print_search (node, alpha, beta, move, ply, value, _PS_CUT, _PS_PVS_E_W);       
 							return value;
 						}						
 						update_pv (node, move, ply); 
 					}
 
-					g_assert (value > - INFINITY && value < INFINITY);
+					BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 					print_search(node, alpha, beta, move, ply, value, _PS_NORMAL, _PS_PVS_E_W); 
 					return value;
 
@@ -1882,7 +1882,7 @@ int w17_pvs_evade_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 			while (last>first) {
 				move = w17_select_capture_w (node, first, last); // fixme: ook proberen zonder deze sortering
 				
-				g_assert( legals <= 128 ); 
+				BOOST_ASSERT( legals <= 128 );
 
 				if (!legal_move_w (node, move)) {								
 					continue;
@@ -1901,14 +1901,14 @@ int w17_pvs_evade_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 					if (g.stopsearch) { 
 						return INVALID;
 					}
-					g_assert (value > - INFINITY && value < INFINITY);
+					BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 					
 					legals++;
 					
 					if (value > best) {
 						if (value > alpha) {
 							if (value >= beta) {
-								g_assert (value > - INFINITY && value < INFINITY);
+								BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 								hash_store (node, depth, ply, value, move, g.fastnodes - nodes, lower_bound);
 								print_search( node, alpha, beta, move, ply, value, _PS_CUT, _PS_PVS_E_W);
 								g.cutoffs_w [legals]++; 
@@ -1936,7 +1936,7 @@ int w17_pvs_evade_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 				}
 #endif
 
-				g_assert (best > - INFINITY && best < INFINITY);
+				BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 				print_search( node, alpha, beta, hashmove, ply, best, _PS_NORMAL, _PS_PVS_E_W); 
 				return best;
 			}			
@@ -1956,7 +1956,7 @@ int w17_pvs_evade_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 #ifdef DEBUG_INSPECT
 	debuglegals = count_legals_w (node, first, last);
 #endif
-	g_assert(first + 128 > last); 
+	BOOST_ASSERT(first + 128 > last);
 
 	
 	while (last > first) { 
@@ -1980,13 +1980,13 @@ int w17_pvs_evade_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 			if (g.stopsearch) { 
 				return INVALID;
 			}
-			g_assert (value > - INFINITY && value < INFINITY);
+			BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 			legals++;
 			
 			if (value > best) {
 				if (value > alpha) {
 					if (value >= beta) {
-						g_assert (value > - INFINITY && value < INFINITY);
+						BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 						hash_store (node, depth, ply, value, move, g.fastnodes - nodes, lower_bound);
 						print_search( node, alpha, beta, move, ply, value, _PS_CUT, _PS_PVS_E_W); 
 						g.cutoffs_w [legals] ++; 
@@ -2019,14 +2019,8 @@ int w17_pvs_evade_w (TFastNode* node, int alpha, int beta, int ply, int depth)
 		print_search (node, alpha, beta, 0, ply, MATE-ply, _PS_TRIVIAL, _PS_PVS_E_W);  
 		return MATE-ply; 
 	}
-	g_assert (best > - INFINITY && best < INFINITY);
+	BOOST_ASSERT (best > - CHESS_INF && best < CHESS_INF);
 	hash_store (node, depth, ply, best, hashmove, g.fastnodes - nodes, lower_bound);
 	print_search (node, alpha, beta, hashmove, ply, best, _PS_NORMAL, _PS_PVS_E_W); 
 	return best; 
 }
-
-
-
-
-
-

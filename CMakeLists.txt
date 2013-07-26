@@ -2,9 +2,15 @@ cmake_minimum_required (VERSION 2.6)
 
 project (maxima)
 
-# version number 
-set (MAXIMA_VERSION_MAJOR 0) 
-set (MAXIMA_VERSION_MINOR 99) 
+find_package(Git)
+if (GIT_FOUND)
+    execute_process(COMMAND git --git-dir ${PROJECT_SOURCE_DIR}/.git rev-parse  HEAD
+        OUTPUT_VARIABLE REVISION
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+    message(STATUS "Git revision is ${REVISION}")
+else()
+    set(REVISION "none")
+endif()
 
 # Warning when build is not an out-of-source build.
 string(COMPARE EQUAL "${CMAKE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}" InSourceBuild)
@@ -23,17 +29,11 @@ include_directories("${PROJECT_BINARY_DIR}")
 
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(GLIB_PKG glib-2.0)
-
-if (GLIB_PKG_FOUND)
-    message(Found glib-2.0)
-    include_directories(${GLIB_PKG_INCLUDE_DIRS}) 
-endif (GLIB_PKG_FOUND) 
-
-find_package(PostgreSQL REQUIRED) 
+find_package(Boost 1.49 COMPONENTS system REQUIRED) 
+find_package(PostgreSQL 8.0 REQUIRED) 
 
 include_directories(${PostgreSQL_INCLUDE_DIRS}) 
+include_directories(${Boost_INCLUDE_DIRS})
 
 add_executable(maxima src/main.cpp 
 	src/attack.cpp 
@@ -60,7 +60,6 @@ add_executable(maxima src/main.cpp
         src/fics.cpp
         src/init.cpp
         src/main.cpp
-        src/relay.cpp
         src/tm_icc.cpp
         src/w0_quiescence_b.cpp
         src/w17.cpp
@@ -75,5 +74,7 @@ add_executable(maxima src/main.cpp
         src/w17_quiescence.cpp
 )
 
-target_link_libraries(maxima ${GLIB_PKG_LIBRARIES} ${PostgreSQL_LIBRARIES})
+message(STATUS "Libraries: ${Boost_LIBRARIES} ${PostgreSQL_LIBRARIES} pthread") 
+
+target_link_libraries(maxima ${Boost_LIBRARIES} ${PostgreSQL_LIBRARIES} pthread)
 

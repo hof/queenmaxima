@@ -87,9 +87,9 @@ void InitHash(bool smallesthash)
 
 	/* ---- alloc hashtables */ 
 
-	hashtable_0 = g_new0(THashEntry,(1<< _hashsize)); 
-	hashtable_1 = g_new0(THashEntry,(1<< _hashsize)); 
-	pawn_hashtable = g_new0(TPawnHashEntry, (1<<_pawnhashsize)); 
+	hashtable_0 = (THashEntry*)malloc(sizeof(THashEntry)*(1<< _hashsize)); 
+	hashtable_1 = (THashEntry*)malloc(sizeof(THashEntry)*(1<< _hashsize)); 
+	pawn_hashtable = (TPawnHashEntry*)malloc(sizeof(TPawnHashEntry)*(1<<_pawnhashsize)); 
 
 	/* ---- init van hashsize afhankelijke vars ---- */ 
 
@@ -134,7 +134,7 @@ bool inhash (TFastNode* node)
 	 	
 	unsigned int index = INDEX (node -> hashcode);
 	
-	g_assert (index >= 0 && index <= _hash_index);
+	BOOST_ASSERT (index >= 0 && index <= _hash_index);
 	
 #ifdef DEBUG_HASH
 	bool result = KEY (node -> hashcode) == KEY (hashtable_1 [index]. key);
@@ -185,7 +185,7 @@ bool hashhit (TFastNode* node, int depth, int ply, int & value, int & move, int 
 						
 			value = hashtable_0 [index]. value;
 			
-			g_assert (value > - INFINITY && value < INFINITY);
+			BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 			
 			if (MATE_VALUE (value)) {
 				value -= ply;
@@ -262,7 +262,7 @@ bool hashhit (TFastNode* node, int depth, int ply, int & value, int & move, int 
 						
 			value = hashtable_1 [index]. value;
 			
-			g_assert (value > - INFINITY && value < INFINITY);
+			BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 			
 			if (MATE_VALUE (value)) {
 				value -= ply;
@@ -343,7 +343,7 @@ void hash_store (TFastNode* node, int depth, int ply, int value, int move, unsig
   | replacement strategy                         |
   +----------------------------------------------+
 */
-  g_assert (value > - INFINITY && value < INFINITY);
+  BOOST_ASSERT (value > - CHESS_INF && value < CHESS_INF);
 
 #ifdef PRINT_SEARCH
 	g_print("hash_store: hc=%10x m= ",(int)node->hashcode); 
@@ -363,10 +363,10 @@ void hash_store (TFastNode* node, int depth, int ply, int value, int move, unsig
 	
 #ifdef DEBUG_INSPECT
 
-	if (ABS(value) > INFINITY) {
+	if (ABS(value) > CHESS_INF) {
 		g_print ("%d", value);
 	}
-	g_assert (value > - INFINITY && value < INFINITY);
+	g_assert (value > - CHESS_INF && value < CHESS_INF);
 	if (node -> flags & _WTM) {		
 
 		if (SPECIAL(move) && SPECIALCASE(move)==_PLUNKMOVE) { 
@@ -414,7 +414,7 @@ void hash_store (TFastNode* node, int depth, int ply, int value, int move, unsig
 	g_assert (depth < MAXPLY * FULL_PLY);
 	g_assert (nodes >= 0 && nodes < (unsigned) g.fastnodes);
 	g_assert (bound >= 0 && bound <= 5);
-	g_assert (value > - INFINITY && value < INFINITY);
+	g_assert (value > - CHESS_INF && value < CHESS_INF);
 
 #endif
 	int index = INDEX (node -> hashcode);

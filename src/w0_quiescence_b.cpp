@@ -272,7 +272,7 @@ int quiescence_evade_b (TFastNode * node, int alpha, int beta, int ply, int dept
 	legals = 0;
 	flags = node -> flags;
 	fifty = node -> fifty;
-	best = - INFINITY;		
+	best = - CHESS_INF;
 	first = ply << 7;		
 	last = _fast_genmovesb (node, first);
 
