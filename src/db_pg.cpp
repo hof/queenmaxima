@@ -62,7 +62,7 @@ void db_pg::close() {
 
 // database_save_player 
 // 
-// looks up a player in the PLAYERS table. if it doesn't find one, it inserts a player. 
+// looks up a player in the player table. if it doesn't find one, it inserts a player.
 // returns the ID of the player. Updates the ENTERED (if new) and LASTGAME dates. 
 // 
 long db_pg::save_player(const char* name, const char* titles, const char* server)
@@ -72,7 +72,7 @@ long db_pg::save_player(const char* name, const char* titles, const char* server
 	tm *t = localtime(&now); 
 	
 	std::ostringstream query;
-	query << "SELECT id FROM players WHERE name = '" << name << "'";   
+	query << "SELECT player_id FROM player WHERE name = '" << name << "'";
 	
 	// look up the player
 	long player_id; 
@@ -89,9 +89,9 @@ long db_pg::save_player(const char* name, const char* titles, const char* server
             
 		// insert the player
 	    query.str(""); 
-	    query << "INSERT INTO players (name,titles,server,entered) VALUES ('" << name << "','" << titles; 
+	    query << "INSERT INTO player (name,titles,server,entered) VALUES ('" << name << "','" << titles;
 	    query << "','" << server << "','" << (1900+t->tm_year) << "-" << t->tm_mon+1 << "-" << t->tm_mday << " ";
-	    query << t->tm_hour << ":" <<  t->tm_min << ":" << t->tm_sec << "') RETURNING id";
+	    query << t->tm_hour << ":" <<  t->tm_min << ":" << t->tm_sec << "') RETURNING player_id";
 	    result = PQexec(m_connection,query.str().c_str());
 	    if ((PQresultStatus(result) != PGRES_TUPLES_OK)) {
 	    	cerr << "query3. save_player\n";
@@ -111,8 +111,8 @@ long db_pg::save_player(const char* name, const char* titles, const char* server
 	
 	// update the stats for this player 
 	query.str(""); 
-	query << "UPDATE players SET titles = '" << titles << "', lastgame = '" << (1900+t->tm_year) << "-" << t->tm_mon+1 << "-" << t->tm_mday << " ";
-	query << t->tm_hour << ":" <<  t->tm_min << ":" << t->tm_sec << "' WHERE id = " << player_id; 
+	query << "UPDATE player SET titles = '" << titles << "', lastgame = '" << (1900+t->tm_year) << "-" << t->tm_mon+1 << "-" << t->tm_mday << " ";
+	query << t->tm_hour << ":" <<  t->tm_min << ":" << t->tm_sec << "' WHERE player_id = " << player_id;
 
 	result = PQexec(m_connection,query.str().c_str());
 	if ((PQresultStatus(result) != PGRES_COMMAND_OK)) { 
@@ -136,11 +136,11 @@ long db_pg::save_game(const int whitename, const int blackname, const int flags,
     tm *t = localtime(&now); 
 
     std::ostringstream query; 
-    query << "INSERT INTO games (date,white,black,flags,wildnumber,whiterating,blackrating,basetime,increment,rating_type,rated,result_code) VALUES('";
+    query << "INSERT INTO game (date, white_id, black_id, flags, wildnumber, whiterating, blackrating, basetime, increment, rating_type, rated, result_code) VALUES('";
     query << 1900+t->tm_year << "-" <<  t->tm_mon+1 << "-" << t->tm_mday << " " << t->tm_hour << ":" << t->tm_min << ":" << t->tm_sec << "',";
     query << whitename << "," << blackname << "," << flags << "," << wildnumber << ",";
     query << whiterating << "," << blackrating << "," << basetime << "," << inc << ",";
-    query << rating_type << "," << rated <<  ",'" << result_code << "') RETURNING id ";
+    query << rating_type << "," << rated <<  ",'" << result_code << "') RETURNING game_id ";
 
     PGresult *result = PQexec(m_connection,query.str().c_str());
 
@@ -159,10 +159,10 @@ long db_pg::save_game(const int whitename, const int blackname, const int flags,
 }
 
 
-long db_pg::save_move(const int gamenumber, const int ply, const int move, const int thinktime)
+long db_pg::save_move(const int game_id, const int ply, const int move, const int thinktime)
 {
     std::ostringstream query;
-    query << "INSERT INTO moves (gamenumber,ply,move,movetime) VALUES (" << gamenumber << "," << ply << "," << move;
+    query << "INSERT INTO move (game_id,ply,move,movetime) VALUES (" << game_id << "," << ply << "," << move;
     query << "," << thinktime << ")";
 
     PGresult *result = PQexec(m_connection,query.str().c_str());
