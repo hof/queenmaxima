@@ -121,6 +121,16 @@ void process_datagram()
 		MainForm.white_titles = MainForm.dgram_fields[16]; 
 		MainForm.black_titles = MainForm.dgram_fields[17]; 
 
+		max_has_white = (MainForm.myname == MainForm.whitename);
+
+		if (max_has_white) {
+			MainForm.opponent_player_id = MainForm.dbhandle->save_player(MainForm.blackname.c_str(),
+					MainForm.black_titles.c_str(), "icc");
+		} else {
+			MainForm.opponent_player_id = MainForm.dbhandle->save_player(MainForm.whitename.c_str(),
+					MainForm.white_titles.c_str(), "icc");
+		}
+
 		// init engine
 		_fast_new_game(); 
 		if (MainForm.wildnumber==17) { 
@@ -133,7 +143,6 @@ void process_datagram()
 			std::cout << "unrated set to 0\n";
 		}
 	 	
-		max_has_white = (MainForm.myname == MainForm.whitename);
 		// calculate drawscore 
 		if (max_has_white) {
 			g.drawscore_wtm = (MainForm.blackrating - MainForm.whiterating) * 3;

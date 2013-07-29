@@ -212,75 +212,75 @@ void *engine_thread_execute(void *ptr)
 {
     while (true) { 
 		
-	pthread_mutex_lock(statemutex);
-	{
-	    /* set !stopsearch if we are going to think or ponder */
-	    if (s_threadstate == THREAD_PONDERING || s_threadstate == THREAD_THINKING) {
-			g.stopsearch = false; 
-	    } else {
-			g.stopsearch = true; 
-	    }
-	}
-	pthread_mutex_unlock(statemutex); 
-
-	/* ---- vanaf dit punt kan stopsearch worden gewijzigd door search() of stop() */
-	g.timer.start();
-
-	if (MainForm.wildnumber==0) { 
-	    iterate(&engine_node);
-	} else if (MainForm.wildnumber==17) { 
-
-		int legals = w17_iterate(&engine_node);
-
-		if (!legals) {
-			std::cout << "w17: stop search; no legals\n";
-			// g.stopsearch = true;
-			stop_thinking();
-		}
-	}
-
-	g.timer.stop();
-	/* ---- tot dit punt */ 
-		
-	pthread_mutex_lock(statemutex); 
-	{		       			     
-	    switch(s_threadstate) { 
-	    case THREAD_STOPPING: 	
-	        // std::cout << "* thread state: THREAD_STOPPING\n";
-	        pthread_cond_wait(cond, statemutex);
-                /* setFen handles the new state and engine_rootnode */ 				
-			break;
-	    case THREAD_PONDERING:
-		case THREAD_PONDERSTOPPING:
-			if (s_threadstate==THREAD_PONDERING) {
-				pthread_cond_wait(cond, statemutex);
+		pthread_mutex_lock(statemutex);
+		{
+			/* set !stopsearch if we are going to think or ponder */
+			if (s_threadstate == THREAD_PONDERING || s_threadstate == THREAD_THINKING) {
+				g.stopsearch = false;
+			} else {
+				g.stopsearch = true;
 			}
-			if (s_threadstate != THREAD_STOPPING && s_ponderhit) {
+		}
+		pthread_mutex_unlock(statemutex);
+
+		/* ---- vanaf dit punt kan stopsearch worden gewijzigd door search() of stop() */
+		g.timer.start();
+
+		if (MainForm.wildnumber==0) {
+			iterate(&engine_node, s_threadstate == THREAD_PONDERING);
+		} else if (MainForm.wildnumber==17) {
+
+			int legals = w17_iterate(&engine_node);
+
+			if (!legals) {
+				std::cout << "w17: stop search; no legals\n";
+				// g.stopsearch = true;
+				stop_thinking();
+			}
+		}
+
+		g.timer.stop();
+		/* ---- tot dit punt */
+
+		pthread_mutex_lock(statemutex);
+		{
+			switch(s_threadstate) {
+			case THREAD_STOPPING:
+				// std::cout << "* thread state: THREAD_STOPPING\n";
+				pthread_cond_wait(cond, statemutex);
+					/* setFen handles the new state and engine_rootnode */
+				break;
+			case THREAD_PONDERING:
+			case THREAD_PONDERSTOPPING:
+				if (s_threadstate==THREAD_PONDERING) {
+					pthread_cond_wait(cond, statemutex);
+				}
+				if (s_threadstate != THREAD_STOPPING && s_ponderhit) {
+					play_move();
+					s_threadstate = THREAD_PONDERING;
+					g.maxtime = g.stoptime = 100000000; /* max pondertime */
+				}
+				if (s_threadstate != THREAD_STOPPING && !s_ponderhit) {
+					/* geen ponderhit, reset engine_node */
+					if (engine_node.hashcode != engine_rootnode.hashcode) {
+					memcpy( &engine_node, &engine_rootnode, sizeof(TFastNode));
+					}
+					s_threadstate = THREAD_THINKING;
+				}
+
+			break;
+			case THREAD_THINKING:
 				play_move();
 				s_threadstate = THREAD_PONDERING;
 				g.maxtime = g.stoptime = 100000000; /* max pondertime */
-			}
-			if (s_threadstate != THREAD_STOPPING && !s_ponderhit) {
-				/* geen ponderhit, reset engine_node */
-				if (engine_node.hashcode != engine_rootnode.hashcode) {
-				memcpy( &engine_node, &engine_rootnode, sizeof(TFastNode));
-				}
-				s_threadstate = THREAD_THINKING;
-			}
-				
-		break; 
-	    case THREAD_THINKING:
-	    	play_move();
-	    	s_threadstate = THREAD_PONDERING;
-	    	g.maxtime = g.stoptime = 100000000; /* max pondertime */
-		break;
-	    default:				
-	    	std::cerr << boost::format("Illegal thread state (%d)\n") % s_threadstate;
-		break;
+			break;
+			default:
+				std::cerr << boost::format("Illegal thread state (%d)\n") % s_threadstate;
+			break;
 
-	    }
-	}
-	pthread_mutex_unlock(statemutex); 
+			}
+		}
+		pthread_mutex_unlock(statemutex);
 
     }
     return NULL;

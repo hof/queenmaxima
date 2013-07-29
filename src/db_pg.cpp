@@ -348,18 +348,21 @@ bool db_pg::lookup_book(const _int64 hashcode, int& wwin, int& draw, int& bwin)
     return true;
 }
 
-bool db_pg::learn_inbook(const _int64 hashcode, const int wildnumber)
+bool db_pg::learn_inbook(const _int64 hashcode, const int wildnumber, const int opponent_player_id)
 {
     // allow playing without a database 
     if (!m_connected) {
     	return false;
     }
 
-    std::string tablename; 
-    (wildnumber==17)? tablename="w17book" : tablename="learn"; 
-
     char query_buffer[1024];
-    snprintf(query_buffer,1024,"SELECT hashcode FROM %s WHERE hashcode = %Ld", tablename.c_str(), hashcode);
+
+    if (wildnumber==17) {
+		snprintf(query_buffer,1024,"SELECT hashcode FROM w17book WHERE hashcode = %Ld", hashcode);
+    } else {
+		snprintf(query_buffer,1024,"SELECT hashcode FROM learn WHERE hashcode = %Ld and player_id = %d",
+				hashcode, opponent_player_id);
+    }
 
     PGresult *result = PQexec(m_connection, query_buffer);
     if (PQresultStatus(result) != PGRES_TUPLES_OK) {  
@@ -377,18 +380,22 @@ bool db_pg::learn_inbook(const _int64 hashcode, const int wildnumber)
 }
 
 void db_pg::learn_update(const _int64 hashcode, const int winscore, const int lossscore,
-				    const int nodes, const char avoid, const int wildnumber)
+				    const int nodes, const char avoid, const int wildnumber,
+				    const int opponent_player_id, const int ply, const int move)
 {
     // allow playing without a database 
     if (!m_connected) {
     	return;
     }
 
-    std::string tablename; 
-    (wildnumber==17)? tablename="w17book" : tablename="learn"; 
-
     char query_buffer[1024];
-    snprintf(query_buffer,1024,"SELECT nodes FROM %s WHERE hashcode = %Ld", tablename.c_str(), hashcode);
+
+    if (wildnumber == 17) {
+    	snprintf(query_buffer,1024,"SELECT nodes FROM w17book WHERE hashcode = %Ld", hashcode);
+    } else {
+    	snprintf(query_buffer,1024,"SELECT nodes FROM learn WHERE hashcode = %Ld and player_id = %d",
+    			hashcode, opponent_player_id);
+    }
 
     PGresult *result = PQexec(m_connection,query_buffer);
     if (PQresultStatus(result) != PGRES_TUPLES_OK) {  
@@ -401,9 +408,15 @@ void db_pg::learn_update(const _int64 hashcode, const int winscore, const int lo
         PQclear(result); 
 
         // insert
-        char query_buffer[1024];
-        snprintf(query_buffer,1024,"INSERT INTO %s (hashcode,win_score,loss_score,nodes,avoid) VALUES (%Ld,%d,%d,%d,%d)",
-                tablename.c_str(),hashcode,winscore,lossscore,nodes,(int)avoid); 
+        if (wildnumber == 17) {
+        	snprintf(query_buffer,1024,"INSERT INTO w17book (hashcode,win_score,loss_score,nodes,avoid) VALUES (%Ld,%d,%d,%d,%d)",
+        			hashcode,winscore,lossscore,nodes,(int)avoid);
+        } else {
+        	std::ostringstream movestr;
+        	_fast_SAN (movestr, move);
+        	snprintf(query_buffer,1024,"INSERT INTO learn (hashcode,win_score,loss_score,nodes,avoid,player_id,ply,move) VALUES (%Ld,%d,%d,%d,%d,%d,%d,'%s')",
+        			hashcode,winscore,lossscore,nodes,(int)avoid,opponent_player_id,ply, movestr.str().c_str());
+        }
 
         result = PQexec(m_connection,query_buffer);
         if ((PQresultStatus(result) != PGRES_COMMAND_OK)) {
@@ -418,11 +431,15 @@ void db_pg::learn_update(const _int64 hashcode, const int winscore, const int lo
     	int oldnodes = atoi(PQgetvalue(result,0,0));
     	PQclear(result);
 		
-    	//int newnodes = std::max(nodes,oldnodes);
     	int newnodes = nodes>oldnodes ? nodes : oldnodes;
 
-    	snprintf(query_buffer,1024,"UPDATE %s SET win_score=%d,loss_score=%d,nodes=%d,avoid=%d WHERE hashcode=%Ld",
-                tablename.c_str(),winscore,lossscore,newnodes,(int)avoid,hashcode); 
+    	if (wildnumber == 17) {
+        	snprintf(query_buffer,1024,"UPDATE w17book SET win_score=%d,loss_score=%d,nodes=%d,avoid=%d WHERE hashcode=%Ld",
+                    winscore,lossscore,newnodes,(int)avoid,hashcode);
+    	} else {
+        	snprintf(query_buffer,1024,"UPDATE learn SET win_score=%d,loss_score=%d,nodes=%d,avoid=%d WHERE hashcode=%Ld and player_id = %d",
+                    winscore,lossscore,newnodes,(int)avoid,hashcode,opponent_player_id);
+    	}
 	
     	result = PQexec(m_connection,query_buffer);
     	if ((PQresultStatus(result) != PGRES_COMMAND_OK)) {
@@ -433,18 +450,20 @@ void db_pg::learn_update(const _int64 hashcode, const int winscore, const int lo
     }    
 }
 
-void db_pg::learn_retrieve(const _int64 hashcode, int& winscore, int& lossscore, int& nodes, char& avoid, const int wildnumber)
+void db_pg::learn_retrieve(const _int64 hashcode, int& winscore, int& lossscore, int& nodes,
+		char& avoid, const int wildnumber, const int opponent_player_id)
 {
     // allow playing without a database 
     if (!m_connected) {
-	return;
+    	return;
     }
 
-    std::string tablename; 
-    (wildnumber==17)? tablename="w17book" : tablename="learn"; 
-
     char query_buffer[1024];
-    snprintf(query_buffer,1024,"SELECT win_score, loss_score, nodes, avoid FROM %s WHERE hashcode = %Ld", tablename.c_str(),hashcode);
+    if (wildnumber==17) {
+        snprintf(query_buffer,1024,"SELECT win_score, loss_score, nodes, avoid FROM w17book WHERE hashcode = %Ld", hashcode);
+    } else {
+        snprintf(query_buffer,1024,"SELECT win_score, loss_score, nodes, avoid FROM learn WHERE hashcode = %Ld and player_id = %d", hashcode, opponent_player_id);
+    }
 
     PGresult *result = PQexec(m_connection,query_buffer);
     if (PQresultStatus(result) != PGRES_TUPLES_OK) {  

@@ -23,13 +23,14 @@
 void w17_learning_update (int endply, int gameresult);
 
 // update the learning table 
-void learning_book_update_score (int winner_first_ply, int endply, int score, int wildnumber);
+void learning_book_update_score (int winner_first_ply, int endply, int score, int wildnumber, int opponent_player_id);
 
 // lookup stuff in the learning table 
-bool database_lookup_learn(_int64 hashcode, int &bookscore, int &book_avoid, int min_score, int min_nodes, int wildnumber);
+bool database_lookup_learn(_int64 hashcode, int &bookscore, int &book_avoid, int min_score, int min_nodes,
+		int wildnumber, int opponent_player_id);
 
 // mark bad positions 
-void learn_avoid (int maxima_firstply, int lastply, bool max_won, int wildnumber); 
+void learn_avoid (int maxima_firstply, int lastply, bool max_won, int wildnumber, int opponent_player_id);
 
 int learn_update_score (int myrating, int opprating, bool computer, bool max_won);
 

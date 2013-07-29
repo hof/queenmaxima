@@ -42,7 +42,7 @@ int	quiescence_b (TFastNode * node, int alpha, int beta, int ply, int depth);
 int	quiescence_evade_w (TFastNode * node, int alpha, int beta, int ply, int depth);
 int	quiescence_evade_b (TFastNode * node, int alpha, int beta, int ply, int depth);
 
-int	iterate (TFastNode *);
+int	iterate (TFastNode *, bool pondering);
 
 int	rootdrive_b (TFastNode *, int, int, int);
 

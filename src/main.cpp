@@ -138,9 +138,8 @@ void game_ended(int gameresult, std::string result_code)
 	if (engine_rootply > 511) {
 	    engine_rootply = 511;
 	}
-	
-	
-	learn_avoid (maxima_firstply, engine_rootply-1, max_won, MainForm.wildnumber );
+
+	learn_avoid (maxima_firstply, engine_rootply-1, max_won, MainForm.wildnumber, MainForm.opponent_player_id );
 
 	// determine the win_score and loss_score for use in the learnbook. 
 	// win_score is used if maxima won. 
@@ -158,7 +157,8 @@ void game_ended(int gameresult, std::string result_code)
 	} 
 	
 	//update learn-book adh van die score	
-	learning_book_update_score (winner_firstply, engine_rootply-1, score, MainForm.wildnumber );
+	learning_book_update_score (winner_firstply, engine_rootply-1, score, MainForm.wildnumber,
+			MainForm.opponent_player_id);
 	
     } 
 

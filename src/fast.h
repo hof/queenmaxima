@@ -25,11 +25,14 @@
 #include <cstring>
 #include <stdlib.h> 
 #include <cmath>
+#include <time.h>
+
+#include "config.h"
+
 #include <boost/assert.hpp>
 #include <boost/asio.hpp>
 #include <boost/format.hpp>
 
-#include <time.h>
 #include "defines.h" 
 #include "db_pg.h"
 

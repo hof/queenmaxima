@@ -41,36 +41,39 @@ struct TMainForm {
     int relayply; 
     
     // icc connection
-    int       socket_connection;
-    bool      lost_connection;
+    int socket_connection;
+    bool lost_connection;
 
     /* ---- stats about the current game */ 
-    bool      continued_game; 
+    bool continued_game;
 
     /* ---- ICC related ---- */ 
-    std::string    ICSCurrentLine; /* text we are currently receiving from the server */ 
-    int       ICCstate;            /* internet connection parser state */ 
+    std::string ICSCurrentLine; /* text we are currently receiving from the server */
+    int ICCstate;            /* internet connection parser state */
     std::vector<std::string> dgram_fields;  /* fields in an icc datagram */ 
     std::string current_field; // field currently being received 
 
-    int       gamenumber;        /* game number of ics game */ 
-    int       basetime;          /* base time of the current game */ 
-    int       increment;         /* increment of the current game */
-    int       whitetime;         /* time of white */ 
-    int       blacktime;         /* time of black */   
-    std::string    whitename;         /* name of white player */ 
-    std::string    blackname;         /* name of black player */ 
-    std::string    white_titles;      /* titles of white player */ 
-    std::string    black_titles;      /* titles of black player */ 
-    std::string    myname;            /* my name */ 
-    int       wildnumber;        /* number of chess variant */ 
-    bool      rated;             /* rated or unrated */ 
-    int       whiterating;       /* rating of white */ 
-    int       blackrating;       /* rating of black */ 
-    std::string    rating_type;       /* rating_type like Blitz */ 
+    int gamenumber;       /* game number of ics game */
+    int basetime;          /* base time of the current game */
+    int increment;         /* increment of the current game */
+    int whitetime;         /* time of white */
+    int blacktime;         /* time of black */
+    std::string whitename;         /* name of white player */
+    std::string blackname;         /* name of black player */
+    std::string white_titles;      /* titles of white player */
+    std::string black_titles;      /* titles of black player */
+    std::string myname;            /* my name */
+    int wildnumber;        /* number of chess variant */
+    bool rated;             /* rated or unrated */
+    int whiterating;       /* rating of white */
+    int blackrating;       /* rating of black */
+    std::string rating_type;       /* rating_type like Blitz */
 	
-    bool      autoaccept; 
-    bool      autoseek; 
+    bool autoaccept;
+    bool autoseek;
+
+    /* player_id from player table from opponent */
+    int opponent_player_id;
 }; 
 
 extern TMainForm MainForm; 

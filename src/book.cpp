@@ -83,7 +83,7 @@ void w17_learning_update (int endply, int gameresult)
 	}
 }    
 
-void learning_book_update_score (int winner_first_ply, int endply, int score, int wildnumber)
+void learning_book_update_score (int winner_first_ply, int endply, int score, int wildnumber, int opponent_player_id)
 {
 	// update the positions in the learning table with the score (from 
 	// the saved moves array starting at winner_first_ply to endply. 
@@ -97,19 +97,24 @@ void learning_book_update_score (int winner_first_ply, int endply, int score, in
 		if (engine_records[n].maxima_thinking) {
 			nodes = engine_records[n].nodes;
 		} else { 
-			nodes = 0; 
+			n++;
+			continue;
 		}
 	
-		//		g_print ("updating learning; score += %d; move = ", score);
+		//g_print ("updating learning; score += %d; move = ", score);
 		//print_move (engine_records[n].move);
 		//g_print ("\n");
 
-			if (!g.dbhandle->learn_inbook(engine_records[n].hashcode_after_move, wildnumber)) {
+		if (!g.dbhandle->learn_inbook(engine_records[n].hashcode_after_move, wildnumber,
+				opponent_player_id)) {
+
 			//add new moves to book
 			if ((n%2) == (winner_first_ply%2)) { //set win_score
-				g.dbhandle->learn_update (engine_records[n].hashcode_after_move, score, 0, nodes, 0, wildnumber);
+				g.dbhandle->learn_update (engine_records[n].hashcode_after_move, score, 0, nodes, 0, wildnumber,
+						opponent_player_id, n, engine_records[n].move);
 			} else { //set loss_score
-				g.dbhandle->learn_update (engine_records[n].hashcode_after_move, 0, score, nodes, 0, wildnumber);
+				g.dbhandle->learn_update (engine_records[n].hashcode_after_move, 0, score, nodes, 0, wildnumber,
+						opponent_player_id, n, engine_records[n].move);
 			}
 			
 			if (nodes) {
@@ -120,19 +125,23 @@ void learning_book_update_score (int winner_first_ply, int endply, int score, in
 				break;
 			}
 		} else {
+
 			// update the score of the position already in the table 
 			char avoid; // actually not used (a dummy).
-			g.dbhandle->learn_retrieve(engine_records[n].hashcode_after_move, winscore, lossscore, nodes, avoid, wildnumber);
+			g.dbhandle->learn_retrieve(engine_records[n].hashcode_after_move, winscore, lossscore, nodes, avoid,
+					wildnumber, opponent_player_id);
+
 			if ((n%2) == (winner_first_ply%2)) { //update win_score
-			  g.dbhandle->learn_update(engine_records[n].hashcode_after_move, winscore+score, lossscore, nodes, avoid, wildnumber); 
+				g.dbhandle->learn_update(engine_records[n].hashcode_after_move, winscore+score, lossscore, nodes,
+						avoid, wildnumber, opponent_player_id, n, engine_records[n].move);
 			} else { //update loss_score
-				g.dbhandle->learn_update(engine_records[n].hashcode_after_move, winscore, lossscore+score, nodes, avoid, wildnumber); 
+				g.dbhandle->learn_update(engine_records[n].hashcode_after_move, winscore, lossscore+score, nodes,
+						avoid, wildnumber, opponent_player_id, n, engine_records[n].move);
 			}
 		}
 		n ++;
 	}
 }
-
 
 // just get the score from the book. 
 // we need to know the nps. can use a higher 
@@ -141,35 +150,35 @@ void learning_book_update_score (int winner_first_ply, int endply, int score, in
 // but ehh, moves from opponents are never used in this way??!!!
 // so forget the nps stuff for now. 
 
-bool database_lookup_learn(_int64 hashcode, int &bookscore, int &book_avoid, int min_score, int min_nodes, int wildnumber)  
+bool database_lookup_learn(_int64 hashcode, int &bookscore, int &book_avoid, int min_score, int min_nodes,
+		int wildnumber, int opponent_player_id)
 {
-    return false;
-//	int score=0, winscore=0, lossscore=0, nodes=0;
-//	char avoid = 0;
-//	
-//	if (g.dbhandle->learn_inbook(hashcode, wildnumber)) { 
-//		g.dbhandle->learn_retrieve(hashcode, winscore, lossscore, nodes, avoid, wildnumber);
-//		score = winscore - lossscore;
-//		if (avoid) {
-//			bookscore = 0;
-//			book_avoid = avoid;
-//			return TRUE; 
-//		}
-//		if (winscore >= min_score) {
-//			bookscore = score;
-//			book_avoid = 0;
-//			return TRUE;
-//		}
+	int score=0, winscore=0, lossscore=0, nodes=0;
+	char avoid = 0;
+
+	if (g.dbhandle->learn_inbook(hashcode, wildnumber, opponent_player_id)) {
+		g.dbhandle->learn_retrieve(hashcode, winscore, lossscore, nodes, avoid, wildnumber, opponent_player_id);
+		score = winscore - lossscore;
+		if (avoid) {
+			bookscore = 0;
+			book_avoid = avoid;
+			return true;
+		}
+		if (winscore >= min_score) {
+			bookscore = score;
+			book_avoid = 0;
+			return true;
+		}
 //		if (nodes >= min_nodes) {
 //			bookscore = score;
 //			book_avoid = 0;
-//			return TRUE;
+//			return true;
 //		}
-//	}
-//	return FALSE; 
+	}
+	return false;
 }
 
-void learn_avoid (int maxima_firstply, int lastply, bool max_won, int wildnumber)
+void learn_avoid (int maxima_firstply, int lastply, bool max_won, int wildnumber, int opponent_player_id)
 {
 	// set's avoid for a move. learns not to play this move again 
 	//
@@ -196,23 +205,30 @@ void learn_avoid (int maxima_firstply, int lastply, bool max_won, int wildnumber
 			print_move (engine_records[n].move);
             std::cout << "\n";
 
-			if (g.dbhandle->learn_inbook(engine_records[n].hashcode_after_move, wildnumber)) { 
-				g.dbhandle->learn_retrieve(engine_records[n].hashcode_after_move, winscore, lossscore,nodes, avoid, wildnumber);
-				g.dbhandle->learn_update(engine_records[n].hashcode_after_move,winscore,lossscore,nodes,avoid+1, wildnumber);
+			if (g.dbhandle->learn_inbook(engine_records[n].hashcode_after_move, wildnumber, opponent_player_id)) {
+				g.dbhandle->learn_retrieve(engine_records[n].hashcode_after_move, winscore, lossscore,nodes,
+						avoid, wildnumber, opponent_player_id);
+				g.dbhandle->learn_update(engine_records[n].hashcode_after_move,winscore,lossscore,nodes,avoid+1,
+						wildnumber, opponent_player_id, n, engine_records[n].move);
+
 				//avoid position before this one too 
 				n -= 2;
 				if (n < maxima_firstply) {
 					break;
 				}
-				if (g.dbhandle->learn_inbook(engine_records[n].hashcode_after_move, wildnumber)) {
-					g.dbhandle->learn_retrieve (engine_records[n].hashcode_after_move, winscore, lossscore,nodes, avoid, wildnumber);
-					g.dbhandle->learn_update (engine_records[n].hashcode_after_move, winscore, lossscore,nodes, avoid+1, wildnumber);
+				if (g.dbhandle->learn_inbook(engine_records[n].hashcode_after_move, wildnumber, opponent_player_id)) {
+					g.dbhandle->learn_retrieve (engine_records[n].hashcode_after_move, winscore, lossscore,nodes,
+							avoid, wildnumber, opponent_player_id);
+					g.dbhandle->learn_update (engine_records[n].hashcode_after_move, winscore, lossscore,nodes, avoid+1,
+							wildnumber, opponent_player_id, n, engine_records[n].move);
 					break;
 				} else {
-					g.dbhandle->learn_update (engine_records[n].hashcode_after_move, winscore, lossscore, nodes, 1, wildnumber);
+					g.dbhandle->learn_update (engine_records[n].hashcode_after_move, winscore, lossscore, nodes, 1,
+							wildnumber, opponent_player_id, n, engine_records[n].move);
 				}
 			} else { 
-				g.dbhandle->learn_update(engine_records[n].hashcode_after_move,winscore,lossscore,nodes,1, wildnumber);
+				g.dbhandle->learn_update(engine_records[n].hashcode_after_move,winscore,lossscore,nodes,1,
+						wildnumber, opponent_player_id, n, engine_records[n].move);
 				break; 
 			}
 			break;

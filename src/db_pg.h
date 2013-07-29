@@ -42,10 +42,14 @@ class db_pg
   void save_position(const char* tag, const int seq, const char* fen, const char* commands);
   bool load_position(const char* tag, const int seq, std::string& fen, std::string& commands);
   bool lookup_book(const _int64 hashcode, int& wwin, int& draw, int& bwin);
-  bool learn_inbook(const _int64 hashcode, int wildnumber);
+
+  // learn
+  bool learn_inbook(const _int64 hashcode, const int wildnumber, const int opponent_player_id);
   void learn_update(const _int64 hashcode, const int winscore, const int lossscore, 
-		    const int nodes, const char avoid, const int wildnumber);
-  void learn_retrieve(const _int64 hashcode, int& winscore, int& lossscore, int& nodes, char& avoid, const int wildnumber);
+		  const int nodes, const char avoid, const int wildnumber, const int opponent_player_id,
+		  const int ply, const int move);
+  void learn_retrieve(const _int64 hashcode, int& winscore, int& lossscore, int& nodes,
+		  char& avoid, const int wildnumber, const int opponent_player_id);
   
   // w17 
   bool w17_database_lookup_book (_int64  hashcode, int& wwin, int& draw, int& bwin, int& flags);

@@ -21,12 +21,12 @@
 #include "fast.h"
 #include "w0.h" 
 #include "legality.h"
-// #include "db_base.h"
 #include "attack.h" 
 #include "parser.h"
 #include "book.h"
 #include "tm_icc.h"
 #include "engine_impl.h"
+#include "main.h"
 
 bool try_egtb (TFastNode * node, int ply)
 {
@@ -252,7 +252,6 @@ bool lookup_books_wtm (TFastNode* node, int& score, int& avoid, int tmax, int mo
 		bwin,
 		min_nodes;
 
-
 	score = 0;
 	avoid = 0;
 	
@@ -260,7 +259,8 @@ bool lookup_books_wtm (TFastNode* node, int& score, int& avoid, int tmax, int mo
 	min_score = tmax/5000;
 
 	// try the learning book; 
-	if (database_lookup_learn (node->hashcode, bookscore, bookavoid, min_score, min_nodes, 0 /*wildnumber*/)) {  
+	if (database_lookup_learn (node->hashcode, bookscore, bookavoid, min_score, min_nodes, 0 /*wildnumber*/,
+			MainForm.opponent_player_id)) {
 		if (bookavoid==0 && bookscore<0) { //hack
 			avoid = -bookscore/8;
 		} else {
@@ -268,13 +268,8 @@ bool lookup_books_wtm (TFastNode* node, int& score, int& avoid, int tmax, int mo
 		}
 		if (bookscore>0) {
 			score = 10000000+bookscore;
-			if (engine_rootply<2) { 
-			  std::cout << "+ ";
-			  print_move(move); 
-			  std::cout << boost::format(" book-learn score=%d avoid=%d\n") % score % avoid;
-			}
-			return true;
 		}
+		return true;
 	}
 
 	// temporarily clear avoid value 
@@ -285,17 +280,7 @@ bool lookup_books_wtm (TFastNode* node, int& score, int& avoid, int tmax, int mo
 		if (wwin>2) { //er kan gewonnen worden met deze move 
 			score = wwin + draw - bwin;
 			if (score<0) {
-			  if (engine_rootply<2) { 
-			    std::cout << "- ";
-			    print_move(move); 
-			    // std::cout << boost::format(" book-gm score=%d wwin=%d draw=%d bwin=%d\n") % score % wwin % draw % bwin;
-			  }
 			  return false;
-			}
-			if (engine_rootply<2) { 
-			  std::cout << "+ ";
-			  print_move(move); 
-			  // std::cout << boost::format(" book-gm norandomscore=%d wwin=%d draw=%d bwin=%d ") % score % wwin % draw % bwin;
 			}
 			if (rand() > rand()) {
 				score <<= 1;
@@ -303,17 +288,10 @@ bool lookup_books_wtm (TFastNode* node, int& score, int& avoid, int tmax, int mo
 					score <<= 1;
 				}
 			}
-			if (engine_rootply<2) { 
-				// std::cout << boost::format("score=%d\n") % score;
-			}
 			return true;
 		}		
 	}
-	if (engine_rootply<2) { 
-	  std::cout << ". ";
-	  print_move(move); 
-	  std::cout << " not found\n";
-	}
+
 	return false;
 }
 
@@ -335,7 +313,8 @@ bool lookup_books_btm (TFastNode* node, int& score, int& avoid, int tmax, int mo
 	avoid = 0;
 
 	// try the learning book;
-	if (database_lookup_learn (node->hashcode, bookscore, bookavoid, min_score, min_nodes, 0 /*wildnumber*/)) {
+	if (database_lookup_learn (node->hashcode, bookscore, bookavoid, min_score, min_nodes, 0 /*wildnumber*/,
+			MainForm.opponent_player_id)) {
 
 		if (bookavoid==0 && bookscore<0) { //hack
 			avoid = -bookscore/8;
@@ -344,34 +323,30 @@ bool lookup_books_btm (TFastNode* node, int& score, int& avoid, int tmax, int mo
 		}
 		if (bookscore>0) {
 			score = 10000000+bookscore;
-			// report some info here 
-			// 
-			return true;
 		}
+		return true;
 	}
 
 	// temporarily clear avoid value 
 	avoid = 0; 
 
 	// try the GM book
-        if (g.dbhandle->lookup_book (node -> hashcode, wwin, draw, bwin)) {
-                if (bwin>2) { //er kan gewonnen worden met deze move
-                        score = bwin + draw - wwin;
-			if (score<0) {
-			  // report some info here 
-			  return false;
+	if (g.dbhandle->lookup_book (node -> hashcode, wwin, draw, bwin)) {
+			if (bwin>2) { //er kan gewonnen worden met deze move
+					score = bwin + draw - wwin;
+		if (score<0) {
+		  return false;
+		}
+		if (rand() > rand()) {
+				score <<= 1;
+				if (rand() > rand()) {
+						score <<= 1;
+				}
+		}
+		return true;
 			}
-			if (rand() > rand()) {
-					score <<= 1;
-					if (rand() > rand()) {
-							score <<= 1;
-					}
-			}
-			// report some info here 
-			return true;
-                }
-        }	
-        return false;
+	}
+	return false;
 }
  
 int genrootmoves_w (TFastNode * node)
@@ -405,15 +380,18 @@ int genrootmoves_w (TFastNode * node)
 			g.rootmoves [index]. fifty = node->fifty;
 			g.rootmoves [index]. unknown = false;
 			g.rootmoves [index]. bookmove = false; 
+
 			if (last > 1 && g.checkbook && !g.rootmoves[index].draw) {
 				inbook = lookup_books_wtm (node, bookscore, bookavoid, g.tmax, move);
 				// g_print("\tinbook=%d bookscore=%d bookavoid=%d\n",inbook?1:0, bookscore, bookavoid); 
 				if (bookavoid==0 && inbook) {
-
 					g.rootmoves[index].bookmove = true;
 					g.rootmoves[index].bookvalue = bookscore;
 				}
 				if (bookavoid && inbook) {
+					std::cout << "bookavoid ";
+					print_move(move);
+					std::cout << std::endl;
 					g.rootmoves[index].avoid = bookavoid; 
 				}
 			} 	
@@ -458,11 +436,14 @@ int genrootmoves_b (TFastNode * node)
 			g.rootmoves [index]. bookmove = false; 
 			if (last > 1 && g.checkbook && !g.rootmoves[index].draw) {
 				inbook = lookup_books_btm (node, bookscore, bookavoid, g.tmax, move);
-                                if (bookavoid==0 && inbook) {
-                                        g.rootmoves[index].bookmove = true;
-                                        g.rootmoves[index].bookvalue = bookscore;
-                                }
+				if (bookavoid==0 && inbook) {
+						g.rootmoves[index].bookmove = true;
+						g.rootmoves[index].bookvalue = bookscore;
+				}
 				if (bookavoid && inbook) {
+					std::cout << "bookavoid ";
+					print_move(move);
+					std::cout << std::endl;
 					g.rootmoves[index].avoid = bookavoid;
 				}
 			}       	     

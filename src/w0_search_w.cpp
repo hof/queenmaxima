@@ -70,7 +70,7 @@ void w0_sort_moves_wtm (TFastNode * node, int first, int last, int depth, int pl
 	}
 }
 
-int iterate (TFastNode *node) 
+int iterate (TFastNode *node, bool pondering)
 {
 	int move, last = 0, elapsed = 0,
 		value = INVALID;	
@@ -104,7 +104,9 @@ int iterate (TFastNode *node)
 		
 		/* check if there are bookmoves */ 
 		if (g.checkbook && select_bookmove(node,last)) { 			
-				whisper_bookmove ();					
+			if (!pondering) {
+				whisper_bookmove ();
+			}
 			return last; 
 		} else { 
 			g.checkbook = false; 
@@ -142,7 +144,9 @@ int iterate (TFastNode *node)
 
 		/* check if there is a bookmove */ 
 		if (g.checkbook && select_bookmove(node,last)) { 					
-		  whisper_bookmove ();                       
+			if (!pondering) {
+				whisper_bookmove ();
+			}
 			return last; 
 		} else { 
 			g.checkbook = false; 

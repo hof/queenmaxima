@@ -3,4 +3,5 @@
 
 #define MAXIMA_VERSION "@REVISION@"
 
+#define BOOST_DISABLE_ASSERTS 1 
  
