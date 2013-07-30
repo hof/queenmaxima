@@ -127,7 +127,7 @@ int iterate (TFastNode *node, bool pondering)
 			elapsed = g.timer.elapsed();
 			print_iteration (elapsed);
 			g.iteration++;
-			if (node->wpieces+node->bpieces>3 && elapsed * 2000 > g.stoptime) { 
+			if (node->wpieces+node->bpieces>3 && elapsed > g.stoptime) {
 				break;
 			}
 			rootmove_sort (1, last);
@@ -165,7 +165,7 @@ int iterate (TFastNode *node, bool pondering)
 			elapsed = g.timer.elapsed();
 			print_iteration (elapsed);			
 			g.iteration++;	
-			if (node->wpieces+node->bpieces>3 && elapsed * 2000 > g.stoptime) {
+			if (node->wpieces+node->bpieces>3 && elapsed > g.stoptime) {
 				break;
 			}		
 			rootmove_sort (1, last);

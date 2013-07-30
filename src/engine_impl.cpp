@@ -94,7 +94,7 @@ void engine_update_stats()
 	engine_records[engine_rootply].move = g.rootmoves[0].move; 
 	engine_records[engine_rootply].hashcode_after_move = engine_rootnode.hashcode; 
 	engine_records[engine_rootply].score = /*g.rootscore;*/ g.rootmoves[0].value; 	       
-	engine_records[engine_rootply].thinktime = (int)(g.timer.elapsed () * 1000);
+	engine_records[engine_rootply].thinktime = g.timer.elapsed ();
 	engine_records[engine_rootply].nodes = g.fastnodes;
 //		if (g.fastnodes > g.last_known_nps && engine_records[engine_rootply].thinktime>1000) {
 	unsigned long nodes = g.fastnodes*1000;

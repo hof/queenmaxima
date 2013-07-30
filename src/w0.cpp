@@ -332,19 +332,19 @@ bool lookup_books_btm (TFastNode* node, int& score, int& avoid, int tmax, int mo
 
 	// try the GM book
 	if (g.dbhandle->lookup_book (node -> hashcode, wwin, draw, bwin)) {
-			if (bwin>2) { //er kan gewonnen worden met deze move
-					score = bwin + draw - wwin;
-		if (score<0) {
-		  return false;
-		}
-		if (rand() > rand()) {
+		if (bwin>2) { //er kan gewonnen worden met deze move
+			score = bwin + draw - wwin;
+			if (score<0) {
+				return false;
+			}
+			if (rand() > rand()) {
 				score <<= 1;
 				if (rand() > rand()) {
-						score <<= 1;
+					score <<= 1;
 				}
-		}
-		return true;
 			}
+			return true;
+		}
 	}
 	return false;
 }
