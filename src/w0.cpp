@@ -313,13 +313,19 @@ bool lookup_books (TFastNode* node, int& score, int& avoid, int tmax, int move)
  
 int genrootmoves (TFastNode * node)
 {
-	int last = _fast_genmovesw (node, 0),
+	int last = 0,
 		index = 0,	       
 		move,				
 		fifty = node -> fifty,
 		flags = node -> flags;
 
 	bool wtm = (node -> flags & _WTM);
+	if (wtm) {
+		last = _fast_genmovesw (node, 0);
+	} else {
+		last = _fast_genmovesb (node, 0);
+	}
+
 	bool inbook;
 	int bookscore, bookavoid;
 			
