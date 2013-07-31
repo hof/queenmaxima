@@ -193,7 +193,7 @@
 #define _ROOT_WTM         16384
 #define NONULL            65536
 
-#define ROOT_WTM(n)   ((n) -> flags & _ROOT_WTM)
+#define ROOT_WTM(n)   		((n) -> flags & _ROOT_WTM)
 
 #define _CAPTURE(m)          ((m) & (1<<15|1<<16|1<<17))
 
@@ -327,98 +327,98 @@ struct TFastNode
   int shaky_bking;
 };
 
-	bool select_bookmove(TFastNode *node, int mc);
-	void store_cutoff (int move, int ply, int depth);
+bool select_bookmove(TFastNode *node, int mc);
+void store_cutoff (int move, int ply, int depth);
 
-	bool q_mates_K (TFastNode * node);
-	bool Q_mates_k (TFastNode * node);
+bool q_mates_K (TFastNode * node);
+bool Q_mates_k (TFastNode * node);
 
-	bool black_octopus (TFastNode * node, int sq);
-	bool white_octopus (TFastNode * node, int sq);
+bool black_octopus (TFastNode * node, int sq);
+bool white_octopus (TFastNode * node, int sq);
 
-	bool black_small_octopus (TFastNode * node, int sq);
-	bool white_small_octopus (TFastNode * node, int sq);
+bool black_small_octopus (TFastNode * node, int sq);
+bool white_small_octopus (TFastNode * node, int sq);
 
-	bool passed_wpawn (TFastNode * node, int sq);
-	bool passed_bpawn (TFastNode * node, int sq); 
+bool passed_wpawn (TFastNode * node, int sq);
+bool passed_bpawn (TFastNode * node, int sq);
 
-	bool quiet_w (TFastNode * node);
-	bool quiet_b (TFastNode * node);
+bool quiet_w (TFastNode * node);
+bool quiet_b (TFastNode * node);
 
-	int count_legals_w (TFastNode * node, int first, int last);
-	int count_legals_b (TFastNode * node, int first, int last);
-	void update_pv (TFastNode *node, int move, int ply);
+int count_legals_w (TFastNode * node, int first, int last);
+int count_legals_b (TFastNode * node, int first, int last);
+void update_pv (TFastNode *node, int move, int ply);
 
-	bool open_file (TFastNode * node, int sq);
+bool open_file (TFastNode * node, int sq);
 
-	bool stalemated_K (TFastNode * node);
-	bool stalemated_k (TFastNode * node);
+bool stalemated_K (TFastNode * node);
+bool stalemated_k (TFastNode * node);
 
-	// global vars
-	struct Vars {
-	    TTimer  timer;
-	    _int64  stoptime; 
-	    _int64  maxtime;
-            _int64  timeleft; 
-	    char    maxply;
-	    char    maxq;	
-	    bool    stopsearch;
-	    unsigned int     fastnodes;
-	    int     iteration;
-	    int     result_value;
-	    int     repindex;
-	    bool    checkbook; 
-	    bool	crisis;
-	    bool    winning;
-	    int rootscore; 
-	    int last_known_nps; 
-	    int tmax; 
+// global vars
+struct Vars {
+	TTimer  timer;
+	_int64  stoptime;
+	_int64  maxtime;
+		_int64  timeleft;
+	char    maxply;
+	char    maxq;
+	bool    stopsearch;
+	unsigned int     fastnodes;
+	int     iteration;
+	int     result_value;
+	int     repindex;
+	bool    checkbook;
+	bool	crisis;
+	bool    winning;
+	int rootscore;
+	int last_known_nps;
+	int tmax;
 
-		db_pg* dbhandle;
+	db_pg* dbhandle;
 
-		// callbacks
-		//void (*depth_completed_callback)();
-		//void (*search_completed_callback)();
+	// callbacks
+	//void (*depth_completed_callback)();
+	//void (*search_completed_callback)();
 
-		/* add 1 ply for the termintating 0 */
-		int		pv [MAXPLY+1] [MAXPLY+1];
+	/* add 1 ply for the termintating 0 */
+	int		pv [MAXPLY+1] [MAXPLY+1];
 
-		int     path[MAXPLY];
-		int     evalpath [MAXPLY];
-		int     maxpath [51];
-		bool    nullmate [MAXPLY];
-		int     nullmate_move [MAXPLY];
-		bool    unquiet_ext [MAXPLY];
+	int     path[MAXPLY];
+	int     evalpath [MAXPLY];
+	int     maxpath [51];
+	bool    nullmate [MAXPLY];
+	int     nullmate_move [MAXPLY];
+	bool    unquiet_ext [MAXPLY];
 
-		int	cutoffs_w [100];
-		int	cutoffs_b [100];
+	int	cutoffs_w [100];
+	int	cutoffs_b [100];
 
-	    int drawscore_wtm;
-	    int drawscore_btm;
+	int drawscore_wtm;
+	int drawscore_btm;
 
-		TRootMove  rootmoves [255];
-		int     tmoves [((MAXPLY + 2) << 7) + 128];
-		int     megasort [((MAXPLY + 2) << 7) + 128];
-		int     tsort [4096]; // index = ssq | tsq << 6 dus: (move & 4095)
-		_int64  reptable [150];
-	}; 
+	TRootMove  rootmoves [255];
+	int     tmoves [((MAXPLY + 2) << 7) + 128];
+	int     megasort [((MAXPLY + 2) << 7) + 128];
+	int     tsort [4096]; // index = ssq | tsq << 6 dus: (move & 4095)
+	_int64  reptable [150];
+};
 
-	struct Tables { 
-		bool	edge [64];	
-		char    direction [64] [64];
-		char    squares_to_edge [64] [64];
-		char    nextpos[8][64][64];
-		char	nextdir[8][64][64];
-		bool	pieceattacks[7][64][64];
-		char    sqonline [64] [64]; /* fixme: maybe it's faster to use the 0x88 board representation.*/
-		char    queen_kisses_king [64] [64];
-	}; 
+struct Tables {
+	bool	edge [64];
+	char    direction [64] [64];
+	char    squares_to_edge [64] [64];
+	char    nextpos[8][64][64];
+	char	nextdir[8][64][64];
+	bool	pieceattacks[7][64][64];
+	char    sqonline [64] [64]; /* fixme: maybe it's faster to use the 0x88 board representation.*/
+	char    queen_kisses_king [64] [64];
+};
 
-	extern Vars g; 
-	extern Tables t; 
+extern Vars g;
+extern Tables t;
 
-	extern const int piece_val [13];	
-	extern const int piece_values [13];
+extern const int piece_val [13];
+extern const int piece_values [13];
 
 
 void    add_time ();
@@ -438,58 +438,58 @@ void   _fast_matrix2node(TFastNode *node,unsigned char matrix[64],int flags,int 
 int    _fast_genmovesw(TFastNode*,int);
 int    _fast_genmovesb(TFastNode*,int);
 
-	extern char pawn_control [64];
+extern char pawn_control [64];
 
-	int get_move_from_db (TFastNode * node);
+int get_move_from_db (TFastNode * node);
 
-	int   _fast_gencapsw (TFastNode*, int);
-	int   _fast_gencapsb (TFastNode*, int);
-	int   _fast_gennoncapsw (TFastNode*, int);
-	int   _fast_gennoncapsb (TFastNode*, int);
+int   _fast_gencapsw (TFastNode*, int);
+int   _fast_gencapsb (TFastNode*, int);
+int   _fast_gennoncapsw (TFastNode*, int);
+int   _fast_gennoncapsb (TFastNode*, int);
 
-	void  _fast_dowmove(TFastNode*, int);
-	void  _fast_dobmove(TFastNode*, int);
-	void  _fast_undowmove(TFastNode*, int, int, int);
-	void  _fast_undobmove(TFastNode*, int, int, int);
+void  _fast_dowmove(TFastNode*, int);
+void  _fast_dobmove(TFastNode*, int);
+void  _fast_undowmove(TFastNode*, int, int, int);
+void  _fast_undobmove(TFastNode*, int, int, int);
 
-	void  rootmove_sort (int first, int last);
-	
-	int   _fast_selectmove(int first, int &last);
+void  rootmove_sort (int first, int last);
 
-	int   _fast_selectcapture (int first, int &last, int sq);
+int   _fast_selectmove(int first, int &last);
 
-	int   megaselect (int first, int & last);
+int   _fast_selectcapture (int first, int &last, int sq);
 
-	void  print_path (int);
-	void  print_pv (); 
-	int   print_pv_addstr (std::ostringstream &);
-	void  print_cutoffs ();
+int   megaselect (int first, int & last);
 
-	void  root_new_best (TFastNode *node, int index, int value);
-	void  _fast_init_iterate (TFastNode*);
+void  print_path (int);
+void  print_pv ();
+int   print_pv_addstr (std::ostringstream &);
+void  print_cutoffs ();
 
-	bool  nooccs (TFastNode* node, int ssq, int tsq);
+void  root_new_best (TFastNode *node, int index, int value);
+void  _fast_init_iterate (TFastNode*);
 
-	bool  checkcheck_w (TFastNode*, int);
-	bool  checkcheck_b (TFastNode*, int);
+bool  nooccs (TFastNode* node, int ssq, int tsq);
 
-	void  rootmove_sort (int first, int last);
+bool  checkcheck_w (TFastNode*, int);
+bool  checkcheck_b (TFastNode*, int);
 
-	void  _tgoodmovesw_add(int,int);
-	void  _tgoodmovesb_add(int,int);
+void  rootmove_sort (int first, int last);
 
-	void  goodcapsw_add (int, int);
-	void  goodcapsb_add (int, int);
+void  _tgoodmovesw_add(int,int);
+void  _tgoodmovesb_add(int,int);
 
-	#ifndef PRINT_SEARCH
-	#define print_search(a,b,c,d,e,f,g,h) /* debug */
-	#define print_search_entry(a, b, c, d) /* debug */ 
-	#endif 
+void  goodcapsw_add (int, int);
+void  goodcapsb_add (int, int);
 
-	#ifdef PRINT_SEARCH 
-	void print_search (TFastNode * node, int alpha, int beta, int move, int ply, int score, int type, int proc);
-	void print_search_entry (TFastNode *node, int type, int ply, int depth);
-	#endif
+#ifndef PRINT_SEARCH
+#define print_search(a,b,c,d,e,f,g,h) /* debug */
+#define print_search_entry(a, b, c, d) /* debug */
+#endif
+
+#ifdef PRINT_SEARCH
+void print_search (TFastNode * node, int alpha, int beta, int move, int ply, int score, int type, int proc);
+void print_search_entry (TFastNode *node, int type, int ply, int depth);
+#endif
 
 #endif
 

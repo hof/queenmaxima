@@ -36,6 +36,12 @@ struct Tengine_records {
 extern TFastNode engine_rootnode;
 extern Tengine_records   engine_records[512];
 extern int engine_rootply;
+extern int s_threadstate;
+
+#define THREAD_STOPPING 1
+#define THREAD_PONDERING 2
+#define THREAD_THINKING 3
+#define THREAD_PONDERSTOPPING 4
 
 // init 
 void init_engine(); 

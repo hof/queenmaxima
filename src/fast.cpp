@@ -216,7 +216,7 @@ int get_move_from_db (TFastNode * node)
 			move = g.tmoves [i];
 			if (legal_move_w (node, move)) {
 				_fast_dowmove (node, move);
-				if (lookup_books_wtm (node, score, avoid, 1, move)) { 
+				if (lookup_books (node, score, avoid, 1, move)) {
 					if (avoid==0) {
 						value = score;
 						if (value > best) {
@@ -234,7 +234,7 @@ int get_move_from_db (TFastNode * node)
 			move = g.tmoves [i];
 			if (legal_move_b (node, move)) {
 				_fast_dobmove (node, move);
-				if (lookup_books_btm (node, score, avoid, 1, move)) {
+				if (lookup_books (node, score, avoid, 1, move)) {
 					if (avoid==0) {
 						value = score; 
 						if (value > best) {

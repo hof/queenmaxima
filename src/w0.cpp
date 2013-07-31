@@ -241,61 +241,10 @@ bool profcap_b (TFastNode * node, int move)
 	return false;
 }
 
-bool lookup_books_wtm (TFastNode* node, int& score, int& avoid, int tmax, int move) 
-{
-	int 	bookscore = 0, 
-		bookavoid = 0,	
-		npms = g.last_known_nps/1000,/* last known nodes per millisecond */
-		min_score,
-		wwin,
-		draw,
-		bwin,
-		min_nodes;
-
-	score = 0;
-	avoid = 0;
-	
-	min_nodes = tmax*npms;
-	min_score = tmax/5000;
-
-	// try the learning book; 
-	if (database_lookup_learn (node->hashcode, bookscore, bookavoid, min_score, min_nodes, 0 /*wildnumber*/,
-			MainForm.opponent_player_id)) {
-		if (bookavoid==0 && bookscore<0) { //hack
-			avoid = -bookscore/8;
-		} else {
-			avoid = bookavoid;
-		}
-		if (bookscore>0) {
-			score = 10000000+bookscore;
-		}
-		return true;
-	}
-
-	// temporarily clear avoid value 
-	avoid = 0; 
-
-	// try the GM book	
-	if (g.dbhandle->lookup_book (node->hashcode, wwin, draw, bwin)) {
-		if (wwin>2) { //er kan gewonnen worden met deze move 
-			score = wwin + draw - bwin;
-			if (score<0) {
-			  return false;
-			}
-			if (rand() > rand()) {
-				score <<= 1;
-				if (rand() > rand()) {
-					score <<= 1;
-				}
-			}
-			return true;
-		}		
-	}
-
-	return false;
-}
-
-bool lookup_books_btm (TFastNode* node, int& score, int& avoid, int tmax, int move)
+/**
+ * Check the "learn" and "GM" books to see if the given position is in it.
+ */
+bool lookup_books (TFastNode* node, int& score, int& avoid, int tmax, int move)
 {
 	int     bookscore = 0,
 			bookavoid = 0,
@@ -306,11 +255,11 @@ bool lookup_books_btm (TFastNode* node, int& score, int& avoid, int tmax, int mo
 			bwin,
 			min_nodes;
 
-	min_nodes = tmax*npms;
-	min_score = tmax/5000;
-
 	score = 0;
 	avoid = 0;
+
+	min_nodes = tmax*npms;
+	min_score = 0; // tmax/5000;
 
 	// try the learning book;
 	if (database_lookup_learn (node->hashcode, bookscore, bookavoid, min_score, min_nodes, 0 /*wildnumber*/,
@@ -324,27 +273,40 @@ bool lookup_books_btm (TFastNode* node, int& score, int& avoid, int tmax, int mo
 		if (bookscore>0) {
 			score = 10000000+bookscore;
 		}
+		if (s_threadstate == THREAD_THINKING) {
+			std::cout << boost::format("learn: min_score=%d min_nodes=%d bookscore=%d bookavoid=%d move=") %
+					(tmax/5000) % min_nodes % bookscore % bookavoid << " ";
+			_print_SAN(move);
+			std::cout << std::endl;
+		}
 		return true;
 	}
 
-	// temporarily clear avoid value 
-	avoid = 0; 
-
 	// try the GM book
 	if (g.dbhandle->lookup_book (node -> hashcode, wwin, draw, bwin)) {
-		if (bwin>2) { //er kan gewonnen worden met deze move
-			score = bwin + draw - wwin;
-			if (score<0) {
-				return false;
+
+		/* calculate score when we have at least 2 wins */
+		if (ROOT_WTM(node)) {
+			if (wwin>2)
+			score = wwin + draw - bwin;
+		} else {
+			if (bwin>2) {
+				score = bwin + draw - wwin;
 			}
+		}
+
+		/* don't mark the move as "book" when it has zero or negative score */
+		if (score<=0) {
+			return false;
+		}
+
+		if (rand() > rand()) {
+			score <<= 1;
 			if (rand() > rand()) {
 				score <<= 1;
-				if (rand() > rand()) {
-					score <<= 1;
-				}
 			}
-			return true;
 		}
+		return true;
 	}
 	return false;
 }
@@ -382,8 +344,8 @@ int genrootmoves_w (TFastNode * node)
 			g.rootmoves [index]. bookmove = false; 
 
 			if (last > 1 && g.checkbook && !g.rootmoves[index].draw) {
-				inbook = lookup_books_wtm (node, bookscore, bookavoid, g.tmax, move);
-				// g_print("\tinbook=%d bookscore=%d bookavoid=%d\n",inbook?1:0, bookscore, bookavoid); 
+				inbook = lookup_books (node, bookscore, bookavoid, g.tmax, move);
+
 				if (bookavoid==0 && inbook) {
 					g.rootmoves[index].bookmove = true;
 					g.rootmoves[index].bookvalue = bookscore;
@@ -435,7 +397,8 @@ int genrootmoves_b (TFastNode * node)
 			g.rootmoves [index]. unknown = false;
 			g.rootmoves [index]. bookmove = false; 
 			if (last > 1 && g.checkbook && !g.rootmoves[index].draw) {
-				inbook = lookup_books_btm (node, bookscore, bookavoid, g.tmax, move);
+
+				inbook = lookup_books (node, bookscore, bookavoid, g.tmax, move);
 				if (bookavoid==0 && inbook) {
 						g.rootmoves[index].bookmove = true;
 						g.rootmoves[index].bookvalue = bookscore;

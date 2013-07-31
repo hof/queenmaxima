@@ -25,7 +25,6 @@ int next_q_w (TFastNode * node, int alpha, int beta, int ply, int depth, bool in
 int next_search_b (TFastNode * node, int move, int alpha, int beta, int ply, int depth, bool incheck, int truelegals, int legals);
 int get_move_from_db (TFastNode * node); 
 int selectmove (int first, int & last);
-// int	bepaal_pondermove ();
 bool try_egtb (TFastNode * node, int ply);
 
 void init_evasions_w (TFastNode * node, int first, int & last, int killerindex, int hashmove);
@@ -59,9 +58,6 @@ int minisearch_b (TFastNode * node, int ssq, int tsq);
 int genq_w (TFastNode * node, int index);
 int genq_b (TFastNode * node, int index);
 
-bool lookup_books_wtm (TFastNode* node, int& score, int& avoid, int tmax, int move);
-bool lookup_books_btm (TFastNode* node, int& score, int& avoid, int tmax, int move);
-
-
+bool lookup_books (TFastNode* node, int& score, int& avoid, int tmax, int move);
 
 #endif 
