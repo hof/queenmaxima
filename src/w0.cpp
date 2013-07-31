@@ -267,13 +267,6 @@ bool lookup_books (TFastNode* node, int& score, int& avoid, int tmax, int move)
 
 		if (bookavoid==0 && bookscore<0) { //hack
 			avoid = -bookscore/8;
-
-			/* just ignore this; we lost; also ignore this from GM book */
-			std::cout << "ignore learn move ";
-			_print_SAN(move);
-			std::cout << std::endl;
-
-			return false;
 		} else {
 			avoid = bookavoid;
 		}

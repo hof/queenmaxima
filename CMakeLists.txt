@@ -25,56 +25,14 @@ configure_file (
 	"${PROJECT_BINARY_DIR}/config.h" 
 )
 
-include_directories("${PROJECT_BINARY_DIR}") 
-
-include_directories(${PROJECT_SOURCE_DIR}/src)
-
-find_package(Boost 1.49 COMPONENTS system REQUIRED) 
 find_package(PostgreSQL 8.0 REQUIRED) 
 
 include_directories(${PostgreSQL_INCLUDE_DIRS}) 
-include_directories(${Boost_INCLUDE_DIRS})
+include_directories("${PROJECT_BINARY_DIR}") 
+include_directories(${PROJECT_SOURCE_DIR}/src)
 
-add_executable(maxima src/main.cpp 
-	src/attack.cpp 
-	src/checkcheck.cpp
-        src/extensions.cpp
-        src/hash.cpp
-        src/knightscore.cpp
-        src/parser.cpp
-        src/run_test.cpp
-        src/w0_evaluate.cpp
-        src/w0_search_b.cpp
-        src/w17_search.cpp
-        src/bbtables.cpp
-        src/db_pg.cpp
-        src/fast.cpp
-        src/icc.cpp
-        src/legality.cpp
-        src/queenscore.cpp
-        src/tables.cpp
-        src/w0_pawneval.cpp
-        src/w0_search_w.cpp
-        src/bishopscore.cpp
-        src/egtb_lookup.cpp
-        src/fics.cpp
-        src/init.cpp
-        src/main.cpp
-        src/tm_icc.cpp
-        src/w0_quiescence_b.cpp
-        src/w17.cpp
-        src/book.cpp
-        src/engine_impl.cpp
-        src/hashcodes.cpp
-        src/kingscore.cpp
-        src/minibook.cpp
-        src/rookscore.cpp
-        src/w0.cpp
-        src/w0_quiescence_w.cpp
-        src/w17_quiescence.cpp
-)
+add_subdirectory (src)  
+add_subdirectory (test) 
 
-message(STATUS "Libraries: ${Boost_LIBRARIES} ${PostgreSQL_LIBRARIES} pthread") 
-
-target_link_libraries(maxima ${Boost_LIBRARIES} ${PostgreSQL_LIBRARIES} pthread)
-
+enable_testing ()
+add_test (NAME fenton COMMAND test/fenton)
