@@ -210,12 +210,12 @@ int get_move_from_db (TFastNode * node)
 		avoid,
 		flags = node -> flags, 
 		fifty = node -> fifty;
-	if (node -> flags & _WTM) {
-		last = _fast_genmovesw (node, 0);
-		for (int i = 0; i < last; i ++) {
-			move = g.tmoves [i];
-			if (legal_move_w (node, move)) {
-				_fast_dowmove (node, move);
+
+	last = _fast_genmoves (node, 0);
+	for (int i = 0; i < last; i ++) {
+		move = g.tmoves [i];
+		if (legal_move (node, move)) {
+			_fast_domove (node, move);
 				if (lookup_books (node, score, avoid, 1, move)) {
 					if (avoid==0) {
 						value = score;
@@ -225,28 +225,9 @@ int get_move_from_db (TFastNode * node)
 						}
 					}
 				}
-				_fast_undowmove (node, move, flags, fifty);
+				_fast_undomove (node, move, flags, fifty);
 			}
 		}
-	} else { 
-		last = _fast_genmovesb (node, 0);
-		for (int i = 0; i < last; i ++) {			
-			move = g.tmoves [i];
-			if (legal_move_b (node, move)) {
-				_fast_dobmove (node, move);
-				if (lookup_books (node, score, avoid, 1, move)) {
-					if (avoid==0) {
-						value = score; 
-						if (value > best) {
-							best = value;
-							bestmove = move;
-						}
-					}
-				}
-				_fast_undobmove (node, move, flags, fifty);
-			}
-		}
-	}
 	return bestmove;
 }
 
@@ -1595,7 +1576,15 @@ int _fast_gencapsb (TFastNode* node, int index)
 	return index;
 }
 
-int _fast_genmovesw(TFastNode* node,int index) 
+int _fast_genmoves(TFastNode* node, int index) {
+	if (node -> flags & _WTM) {
+		return _fast_genmovesw(node, index);
+	} else {
+		return _fast_genmovesb(node, index);
+	}
+}
+
+int _fast_genmovesw(TFastNode* node, int index)
 {
 	int ssq, tsq, i, captured;
  
@@ -1894,6 +1883,13 @@ void undonullmove (TFastNode * node, int oldflags, int oldfifty)
 	node -> hashcode ^= 1;
 }
 
+void _fast_domove(TFastNode* node, int move) {
+	if (node -> flags & _WTM) {
+		_fast_dowmove(node, move);
+	} else {
+		_fast_dobmove(node, move);
+	}
+}
 
 void _fast_dowmove(TFastNode* node, int move) 
 {
@@ -2265,6 +2261,16 @@ void _fast_dobmove(TFastNode* node, int move) {
 	 }
  }
  node->index[tsq] = node->index[ssq];
+}
+
+void _fast_undomove(TFastNode* node, int move, int oldflags, int oldfifty) {
+
+	/* if white to move, we have to undo the previous black move */
+	if (node -> flags & _WTM) {
+		_fast_undobmove(node, move, oldflags, oldfifty);
+	} else {
+		_fast_undowmove(node, move, oldflags, oldfifty);
+	}
 }
 
 void _fast_undowmove(TFastNode* node, int move, int oldflags, int oldfifty) {

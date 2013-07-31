@@ -66,11 +66,6 @@ Tengine_records   engine_records[512];
 
 */ 
 
-#define THREAD_STOPPING 1
-#define THREAD_PONDERING 2
-#define THREAD_THINKING 3
-#define THREAD_PONDERSTOPPING 4 
-
 int s_threadstate = THREAD_STOPPING; 
 bool s_ponderhit = false; 
 pthread_cond_t *cond; // = PTHREAD_COND_INITIALIZER;
@@ -143,15 +138,9 @@ int determine_pondermove ()
     
     if (pmove == 0 && MainForm.wildnumber==0) { //guess a move only for w0
         std::cout << "warning: nothing to ponder\n";
-        if (engine_node.flags & _WTM) {
-        	if (genrootmoves_w (&engine_node)) {
-        		pmove = g.rootmoves[0].move;
-        	}
-        } else {
-        	if (genrootmoves_b (&engine_node)) {
-        		pmove = g.rootmoves[0].move;
-        	}
-        }
+    	if (genrootmoves (&engine_node)) {
+    		pmove = g.rootmoves[0].move;
+    	}
     }	
     return pmove;
 }

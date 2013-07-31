@@ -49,8 +49,7 @@ bool game_ended (TFastNode * node);
 bool trivial_draw_w (TFastNode* node, int ply);
 bool trivial_draw_b (TFastNode* node, int ply);
 
-int genrootmoves_w (TFastNode * node);
-int genrootmoves_b (TFastNode * node);
+int genrootmoves (TFastNode * node);
 
 int minisearch_w (TFastNode * node, int ssq, int tsq);
 int minisearch_b (TFastNode * node, int ssq, int tsq);

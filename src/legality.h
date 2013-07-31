@@ -27,6 +27,7 @@ bool	_fast_moveokb(TFastNode*,int);
 bool	inspect_move_legality_b (TFastNode* node, int move);
 bool	inspect_move_legality_w (TFastNode* node, int move);
 
+bool    legal_move (TFastNode*, int);
 bool	legal_move_w (TFastNode*, int);
 bool	legal_move_b (TFastNode*, int);
 

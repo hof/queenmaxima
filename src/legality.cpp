@@ -139,6 +139,14 @@ bool inspect_move_legality_w (TFastNode* node, int move)
 	return result;
 }
 
+bool legal_move (TFastNode* node, int move) {
+	if (node -> flags & _WTM) {
+		return legal_move_w(node, move);
+	} else {
+		return legal_move_b(node, move);
+	}
+}
+
 bool legal_move_w (TFastNode* node, int move) // returns "white move is legal in node"
 {
 	int sq = SOURCESQ (move),

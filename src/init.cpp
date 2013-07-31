@@ -250,12 +250,3 @@ void Master_Init(void)
     g.timer.start();
     g.dbhandle = new db_pg();
 };
-
-
-
-
-
-
-
-
-

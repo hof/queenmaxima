@@ -29,7 +29,6 @@
 #include "extensions.h"
 #include "egtb_lookup.h"
 
-
 void w0_sort_moves_wtm (TFastNode * node, int first, int last, int depth, int ply, int hashmove)
 {
 	int value,		
@@ -94,7 +93,7 @@ int iterate (TFastNode *node, bool pondering)
 		
 	if (node->flags & _WTM) {
 		node -> flags |= _ROOT_WTM;
-		last = genrootmoves_w (node);	
+		last = genrootmoves (node);
 		g.pv [0] [0] = g.rootmoves [0]. move;
 		g.pv [0] [1] = 0;                   
 
@@ -102,7 +101,7 @@ int iterate (TFastNode *node, bool pondering)
 			return last;
 		}		
 		
-		/* check if there are bookmoves */ 
+		/* check if there are book moves */
 		if (g.checkbook && select_bookmove(node,last)) { 			
 			if (!pondering) {
 				whisper_bookmove ();
@@ -134,7 +133,7 @@ int iterate (TFastNode *node, bool pondering)
 		}		
 	} else { // blacks move
 		node -> flags &= ~(_ROOT_WTM);
-		last = genrootmoves_b (node);		
+		last = genrootmoves (node);
 		g.pv [0] [0] = g.rootmoves [0]. move;
 	        g.pv [0] [1] = 0;		
 
@@ -142,7 +141,7 @@ int iterate (TFastNode *node, bool pondering)
 			return last;
 		}				
 
-		/* check if there is a bookmove */ 
+		/* check if there is a book move */
 		if (g.checkbook && select_bookmove(node,last)) { 					
 			if (!pondering) {
 				whisper_bookmove ();

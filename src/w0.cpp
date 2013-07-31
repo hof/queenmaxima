@@ -267,6 +267,13 @@ bool lookup_books (TFastNode* node, int& score, int& avoid, int tmax, int move)
 
 		if (bookavoid==0 && bookscore<0) { //hack
 			avoid = -bookscore/8;
+
+			/* just ignore this; we lost; also ignore this from GM book */
+			std::cout << "ignore learn move ";
+			_print_SAN(move);
+			std::cout << std::endl;
+
+			return false;
 		} else {
 			avoid = bookavoid;
 		}
@@ -311,7 +318,7 @@ bool lookup_books (TFastNode* node, int& score, int& avoid, int tmax, int move)
 	return false;
 }
  
-int genrootmoves_w (TFastNode * node)
+int genrootmoves (TFastNode * node)
 {
 	int last = _fast_genmovesw (node, 0),
 		index = 0,	       
@@ -319,19 +326,40 @@ int genrootmoves_w (TFastNode * node)
 		fifty = node -> fifty,
 		flags = node -> flags;
 
+	bool wtm = (node -> flags & _WTM);
 	bool inbook;
 	int bookscore, bookavoid;
 			
  	for (int i = 0; i < last; i ++) {
 		move = g.tmoves [i];
-		if (move == ENCODESCW && (attacked_by_pnbrqk (node, e1) || attacked_by_pnbrqk (node, f1))) {
-			continue;
+
+		/* check castling moves */
+		if (wtm) {
+			if (move == ENCODESCW && (attacked_by_pnbrqk (node, e1) || attacked_by_pnbrqk (node, f1))) {
+				continue;
+			}
+			if (move == ENCODELCW && (attacked_by_pnbrqk (node, e1) || attacked_by_pnbrqk (node, d1))) {
+				continue;
+			}
+		} else {
+			if (move == ENCODESCB && (attacked_by_PNBRQK (node, e8) || attacked_by_PNBRQK (node, f8))) {
+				continue;
+			}
+			if (move == ENCODELCB && (attacked_by_PNBRQK (node, e8) || attacked_by_PNBRQK (node, d8))) {
+				continue;
+			}
 		}
-		if (move == ENCODELCW && (attacked_by_pnbrqk (node, e1) || attacked_by_pnbrqk (node, d1))) {
-			continue;
+
+		_fast_domove (node, move);
+
+		bool attacked;
+		if (wtm) {
+			attacked = attacked_by_pnbrqk (node, node -> wkpos);
+		} else {
+			attacked = attacked_by_PNBRQK (node, node -> bkpos);
 		}
-		_fast_dowmove (node, move);
-		if (! attacked_by_pnbrqk (node, node -> wkpos)) {			
+
+		if (! attacked) {
 			g.rootmoves [index]. move = move;
 			g.rootmoves [index]. avoid = 0;
 			g.rootmoves [index]. bookvalue = 0;
@@ -360,59 +388,7 @@ int genrootmoves_w (TFastNode * node)
 			index ++;
 
 		}
-		_fast_undowmove (node, move, flags, fifty);		
-	}		
-	return index;
-}
-
-int genrootmoves_b (TFastNode * node)
-{
-	int last = _fast_genmovesb (node, 0),
-		index = 0,	       
-		move,		
-		fifty = node -> fifty,
-		flags = node -> flags;
-
-	bool inbook;
-	int bookscore, bookavoid;
-	
-	for (int i = 0; i < last; i ++) {
-		move = g.tmoves [i];
-		if (move == ENCODESCB && (attacked_by_PNBRQK (node, e8) || attacked_by_PNBRQK (node, f8))) {
-			continue;
-		}
-		if (move == ENCODELCB && (attacked_by_PNBRQK (node, e8) || attacked_by_PNBRQK (node, d8))) {
-			continue;
-		}
-		_fast_dobmove (node, move);
-		if (! attacked_by_PNBRQK (node, node -> bkpos)) {			
-			g.rootmoves [index]. move = move;
-			g.rootmoves [index]. avoid = 0;
-			g.rootmoves [index]. bookvalue = 0;
-			g.rootmoves [index]. matevalue = 0;
-			g.rootmoves [index]. value = 0;
-			g.rootmoves [index]. nodes = 0;		
-			g.rootmoves [index]. draw = trivial_draw_b (node, 1);
-			g.rootmoves [index]. fifty = node -> fifty;
-			g.rootmoves [index]. unknown = false;
-			g.rootmoves [index]. bookmove = false; 
-			if (last > 1 && g.checkbook && !g.rootmoves[index].draw) {
-
-				inbook = lookup_books (node, bookscore, bookavoid, g.tmax, move);
-				if (bookavoid==0 && inbook) {
-						g.rootmoves[index].bookmove = true;
-						g.rootmoves[index].bookvalue = bookscore;
-				}
-				if (bookavoid && inbook) {
-					std::cout << "bookavoid ";
-					print_move(move);
-					std::cout << std::endl;
-					g.rootmoves[index].avoid = bookavoid;
-				}
-			}       	     
-			index ++;
-		}
-		_fast_undobmove (node, move, flags, fifty);				
+		_fast_undomove (node, move, flags, fifty);
 	}		
 	return index;
 }

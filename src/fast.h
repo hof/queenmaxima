@@ -283,10 +283,31 @@ struct TTimer {
 	};
 };
 
+struct TPieces
+{
+  unsigned char pawnlist[16];
+  unsigned char pawns;
+  unsigned char knightlist[20];
+  unsigned char knights;
+  unsigned char bishoplist[20];
+  unsigned char bishops;
+  unsigned char rooklist[20];
+  unsigned char rooks;
+  unsigned char queenlist[18];
+  unsigned char queens;
+  unsigned char kpos;
+  char pieces;
+};
+
 struct TFastNode 
 {
   _int64 hashcode;
   _int64 pawncode;
+
+  TPieces* w;
+  TPieces* b;
+  TPieces* stm;
+
   unsigned char matrix[64];
   unsigned char index[64];
   unsigned char wpawnlist[16];
@@ -315,7 +336,7 @@ struct TFastNode
   char bpieces;
   unsigned char fifty;
   int  flags;
-  
+
   // evaluation stuff
   unsigned char wpassers;
   unsigned char bpassers;
@@ -435,8 +456,10 @@ void   found_mate_w (TFastNode *node);
 void   found_mate_b (TFastNode *node);
 void   _fast_clearnode(TFastNode *node);
 void   _fast_matrix2node(TFastNode *node,unsigned char matrix[64],int flags,int fifty);
-int    _fast_genmovesw(TFastNode*,int);
-int    _fast_genmovesb(TFastNode*,int);
+
+int    _fast_genmoves(TFastNode*, int);
+int    _fast_genmovesw(TFastNode*, int);
+int    _fast_genmovesb(TFastNode*, int);
 
 extern char pawn_control [64];
 
@@ -447,8 +470,11 @@ int   _fast_gencapsb (TFastNode*, int);
 int   _fast_gennoncapsw (TFastNode*, int);
 int   _fast_gennoncapsb (TFastNode*, int);
 
+void  _fast_domove(TFastNode*, int);
 void  _fast_dowmove(TFastNode*, int);
 void  _fast_dobmove(TFastNode*, int);
+
+void  _fast_undomove(TFastNode*, int, int, int);
 void  _fast_undowmove(TFastNode*, int, int, int);
 void  _fast_undobmove(TFastNode*, int, int, int);
 
