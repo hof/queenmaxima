@@ -16,3 +16,19 @@
 .cproject
 .project
 
+# Netbeans
+/nbproject/
+/CMakeCache.txt
+/CTestTestfile.cmake
+/Makefile
+/cmake_install.cmake
+/CMakeFiles/
+/src/cmake_install.cmake
+/src/Makefile
+/src/CMakeFiles/
+/test/CMakeFiles/
+/test/Makefile
+/test/cmake_install.cmake
+/test/fenton.exe
+/src/maxima.exe
+/config.h

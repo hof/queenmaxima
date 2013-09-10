@@ -17,6 +17,7 @@ add_library(maxchess
     db_pg.cpp
     fast.cpp
     icc.cpp
+    uci.cpp
     legality.cpp
     queenscore.cpp
     tables.cpp
