@@ -69,7 +69,6 @@ void connect_to_ics(const char *host, const int port)
 bool processing_adjourned_moves = false; 
 int  nmoves_to_follow = 0; 
 int  aborts = 0; 
-int  unrated = 0;
 bool graceful_shutdown = false; 
 
 void process_datagram()
@@ -90,7 +89,6 @@ void process_datagram()
 		if (MainForm.autoseek) {
 		    send(MainForm.socket_connection, "seek1\nseek2\nseek3\n", 18, 0);
 		    std::cout << currentDateTime() << " icc autoseeking\n";
-		    send(MainForm.socket_connection, "seek 3 0 u\n", 11, 0);
 		}
                 
 		break; 
@@ -136,12 +134,6 @@ void process_datagram()
 			w17_new_game(); 
 		}
 
-		// autorematch counter 
-		if (MainForm.whiterating>1800 && MainForm.blackrating>1800 && MainForm.wildnumber == 0) {
-			unrated = 0;
-			std::cout << "unrated set to 0\n";
-		}
-	 	
 		// calculate drawscore 
 		if (max_has_white) {
 			g.drawscore_wtm = (MainForm.blackrating - MainForm.whiterating) * 3;
@@ -329,15 +321,7 @@ void process_datagram()
 	    */ 
 	    challenger_rating = atoi (MainForm.dgram_fields[2].c_str());
 	    
-	    if (challenger_rating<1800) {
-	    	unrated++;
-	    } else if (atoi(MainForm.dgram_fields[7].c_str()) != 0) { //wildnumber
-	    	unrated++;
-	    } else {
-	    	unrated = 0;
-	    } 
-		
-	    if (MainForm.autoaccept && unrated<3) { 
+	    if (MainForm.autoaccept) { 
 	    	send(MainForm.socket_connection,"accept ",7, 0);
 	    	send(MainForm.socket_connection,MainForm.dgram_fields[1].c_str(),MainForm.dgram_fields[1].length(), 0);
 	    	send(MainForm.socket_connection,"\n",1, 0);
