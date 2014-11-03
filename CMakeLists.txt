@@ -28,7 +28,7 @@ configure_file (
 set(PostgreSQL_ADDITIONAL_SEARCH_PATHS "/usr/include/postgresql/9.3/server")
 find_package(PostgreSQL) 
 
-include_directories("/usr/include/postgresql") 
+include_directories(${PostgreSQL_INCLUDE_DIRS}) 
 include_directories("${PROJECT_BINARY_DIR}") 
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
