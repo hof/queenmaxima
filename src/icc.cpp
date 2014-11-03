@@ -200,7 +200,6 @@ void process_datagram()
 		if (MainForm.autoseek) {
 		    send(MainForm.socket_connection, "seek1\nseek2\nseek3\n", 18, 0);
 		    std::cout << currentDateTime() << " icc autoseeking\n";
-		    send(MainForm.socket_connection, "seek 3 0 u\n", 11, 0);
 		}	
 		break; 
 	case DG_SEND_MOVES:
