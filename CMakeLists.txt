@@ -25,9 +25,10 @@ configure_file (
 	"${PROJECT_BINARY_DIR}/config.h" 
 )
 
-find_package(PostgreSQL 8.0 REQUIRED) 
+set(PostgreSQL_ADDITIONAL_SEARCH_PATHS "/usr/include/postgresql/9.3/server")
+find_package(PostgreSQL) 
 
-include_directories(${PostgreSQL_INCLUDE_DIRS}) 
+include_directories("/usr/include/postgresql") 
 include_directories("${PROJECT_BINARY_DIR}") 
 include_directories(${PROJECT_SOURCE_DIR}/src)
 
