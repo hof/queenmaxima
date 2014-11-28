@@ -40,7 +40,7 @@ int               engine_lastmove;
 TFastNode         engine_node; 
 TFastNode         engine_rootnode; 
 int               engine_rootply;  
-Tengine_records   engine_records[512];
+Tengine_records   engine_records[2048];
 
 /* states of the working thread: 
  

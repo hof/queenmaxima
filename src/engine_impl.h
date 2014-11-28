@@ -34,7 +34,7 @@ struct Tengine_records {
 };
 
 extern TFastNode engine_rootnode;
-extern Tengine_records   engine_records[512];
+extern Tengine_records   engine_records[2048];
 extern int engine_rootply;
 extern int s_threadstate;
 
